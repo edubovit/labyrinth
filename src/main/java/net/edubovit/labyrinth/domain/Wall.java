@@ -1,9 +1,10 @@
 package net.edubovit.labyrinth.domain;
 
-import javafx.scene.paint.Color;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+
+import java.awt.Color;
 
 @Getter
 @Setter
@@ -18,7 +19,7 @@ public abstract sealed class Wall permits HorizontalWall, VerticalWall {
     @Getter
     @RequiredArgsConstructor
     public enum State {
-        ABSENT(Color.WHITE), PLAN(Color.DARKGRAY), FINAL(Color.BLACK);
+        ABSENT(Color.WHITE), PLAN(Color.GRAY), FINAL(Color.BLACK);
 
         private final Color color;
     }

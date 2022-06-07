@@ -103,7 +103,7 @@ public class Labyrinth {
             if (wall.getState() == ABSENT) {
                 wall.setState(PLAN);
                 availableDigDirections.add(new Way(cell.getDown().getCell(), DigDirection.DOWN));
-            } else if (wall.getState() == PLAN /*&& to != DigDirection.DOWN*/) {
+            } else if (wall.getState() == PLAN) {
                 wall.setState(FINAL);
                 availableDigDirections.remove(new Way(cell, DigDirection.UP));
             }
@@ -115,7 +115,7 @@ public class Labyrinth {
             if (wall.getState() == ABSENT) {
                 wall.setState(PLAN);
                 availableDigDirections.add(new Way(cell.getUp().getCell(), DigDirection.UP));
-            } else if (wall.getState() == PLAN /*&& to != DigDirection.UP*/) {
+            } else if (wall.getState() == PLAN) {
                 wall.setState(FINAL);
                 availableDigDirections.remove(new Way(cell, DigDirection.DOWN));
             }
@@ -127,7 +127,7 @@ public class Labyrinth {
             if (wall.getState() == ABSENT) {
                 wall.setState(PLAN);
                 availableDigDirections.add(new Way(cell.getRight().getCell(), DigDirection.RIGHT));
-            } else if (wall.getState() == PLAN /*&& to != DigDirection.RIGHT*/) {
+            } else if (wall.getState() == PLAN) {
                 wall.setState(FINAL);
                 availableDigDirections.remove(new Way(cell, DigDirection.LEFT));
             }
@@ -139,7 +139,7 @@ public class Labyrinth {
             if (wall.getState() == ABSENT) {
                 wall.setState(PLAN);
                 availableDigDirections.add(new Way(cell.getLeft().getCell(), DigDirection.LEFT));
-            } else if (wall.getState() == PLAN /*&& to != DigDirection.LEFT*/) {
+            } else if (wall.getState() == PLAN) {
                 wall.setState(FINAL);
                 availableDigDirections.remove(new Way(cell, DigDirection.RIGHT));
             }

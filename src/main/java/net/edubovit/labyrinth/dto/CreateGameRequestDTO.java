@@ -28,6 +28,17 @@ public record CreateGameRequestDTO(int width,
         );
     }
 
+    public static CreateGameRequestDTO defaultGame() {
+        return new CreateGameRequestDTO(
+                Defaults.DEFAULT_WIDTH,
+                Defaults.DEFAULT_HEIGHT,
+                Defaults.DEFAULT_CELL_SIZE,
+                Defaults.DEFAULT_CELL_BORDER,
+                Defaults.DEFAULT_OUTER_BORDER,
+                System.currentTimeMillis()
+        );
+    }
+
     private static int readPositiveIntOrDefault(Integer value, int defaultValue) {
         return value == null || value <= 0 ? defaultValue : value;
     }

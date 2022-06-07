@@ -5,14 +5,10 @@ import net.edubovit.labyrinth.domain.HorizontalWall;
 import net.edubovit.labyrinth.domain.VerticalWall;
 import net.edubovit.labyrinth.domain.Wall;
 
-import javafx.application.Platform;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.WritableImage;
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import lombok.SneakyThrows;
-
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -20,25 +16,25 @@ public class LabyrinthView {
 
     private static final Color COLOR_ENTER = Color.RED;
 
-    private static final Color COLOR_EXIT = Color.LAWNGREEN;
+    private static final Color COLOR_EXIT = Color.GREEN;
 
     private final int fieldWidth;
 
     private final int fieldHeight;
 
-    private final double cellSize;
+    private final int cellSize;
 
-    private final double cellBorder;
+    private final int cellBorder;
 
-    private final double outerBorder;
+    private final int outerBorder;
 
-    private final double canvasWidth;
+    private final int canvasWidth;
 
-    private final double canvasHeight;
+    private final int canvasHeight;
 
-    private final Canvas canvas;
+    private final BufferedImage canvas;
 
-    private final GraphicsContext graphicsContext;
+    private final Graphics2D graphicsContext;
 
     public LabyrinthView(int fieldWidth, int fieldHeight, int cellSize, int cellBorder, int outerBorder) {
         this.fieldWidth = fieldWidth;
@@ -49,18 +45,15 @@ public class LabyrinthView {
 
         canvasWidth = 2 * outerBorder + cellSize * fieldWidth;
         canvasHeight = 2 * outerBorder + cellSize * fieldHeight;
-        canvas = new Canvas(canvasWidth, canvasHeight);
-        graphicsContext = canvas.getGraphicsContext2D();
-    }
-
-    public Pane getPane() {
-        return new Pane(canvas);
+        canvas = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_INT_RGB);
+        graphicsContext = canvas.createGraphics();
+        graphicsContext.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
     public void drawOuterBorders(Wall enter, Wall exit) {
-        graphicsContext.setStroke(Color.BLACK);
-        graphicsContext.setLineWidth(outerBorder);
-        graphicsContext.strokeRect(0 + outerBorder / 2, 0 + outerBorder / 2,
+        graphicsContext.setColor(Color.BLACK);
+        graphicsContext.setStroke(new BasicStroke(outerBorder));
+        graphicsContext.drawRect(outerBorder / 2, outerBorder / 2,
                 outerBorder + cellSize * fieldWidth, outerBorder + cellSize * fieldHeight);
         drawWall(enter, COLOR_ENTER, 6 * cellBorder);
         drawWall(exit, COLOR_EXIT, 6 * cellBorder);
@@ -76,34 +69,37 @@ public class LabyrinthView {
                 .forEach(wall -> drawWall(wall, wall.getState().getColor()));
     }
 
-    public void markCell(Cell cell) {
-        graphicsContext.setFill(Color.color(1, 1, 0, 0.75));
-        graphicsContext.fillOval(cellBorder + cellSize * (0.3 + cell.getJ()), cellBorder + cellSize * (0.3 + cell.getI()),
-                cellSize * 0.4, cellSize * 0.4);
+    public BufferedImage snapshot() {
+        return canvas;
     }
 
-    @SneakyThrows
-    public WritableImage snapshot() {
-        var snapshotMaker = new SnapshotMaker();
-        Platform.runLater(snapshotMaker);
-        synchronized (snapshotMaker) {
-            while (snapshotMaker.result == null) {
-                snapshotMaker.wait();
-            }
-        }
-        return snapshotMaker.result;
+    public void drawPlayer(Cell cell) {
+        putMark(cell, new Color(0xff, 0x77, 0x0));
+    }
+
+    public void removePlayer(Cell cell) {
+        putMark(cell, Color.WHITE);
+    }
+
+    private void putMark(Cell cell, Color color) {
+        graphicsContext.setColor(color);
+        graphicsContext.fillRect(
+                (int) (outerBorder + cellSize * (0.25 + cell.getJ())),
+                (int) (outerBorder + cellSize * (0.25 + cell.getI())),
+                (int) (cellSize * 0.5),
+                (int) (cellSize * 0.5));
     }
 
     private void drawWall(Wall wall, Color color) {
         drawWall(wall, color, 2 * cellBorder);
     }
 
-    private void drawWall(Wall wall, Color color, double width) {
-        graphicsContext.setStroke(color);
-        graphicsContext.setLineWidth(width);
+    private void drawWall(Wall wall, Color color, int width) {
+        graphicsContext.setColor(color);
+        graphicsContext.setStroke(new BasicStroke(width));
         switch (wall) {
             case HorizontalWall horizontalWall -> {
-                double x, y;
+                int x, y;
                 if (horizontalWall.getUp() == null) {
                     x = outerBorder + cellSize * horizontalWall.getDown().getJ();
                     y = outerBorder;
@@ -112,13 +108,13 @@ public class LabyrinthView {
                     y = outerBorder + cellSize * (1 + horizontalWall.getUp().getI());
                 }
                 if (color == Wall.State.ABSENT.getColor() || color == COLOR_ENTER || color == COLOR_EXIT) {
-                    graphicsContext.strokeLine(x + 2 * cellBorder, y, x + cellSize - 2 * cellBorder, y);
+                    graphicsContext.drawLine(x + 2 * cellBorder, y, x + cellSize - 2 * cellBorder, y);
                 } else {
-                    graphicsContext.strokeLine(x, y, x + cellSize, y);
+                    graphicsContext.drawLine(x, y, x + cellSize, y);
                 }
             }
             case VerticalWall verticalWall -> {
-                double x, y;
+                int x, y;
                 if (verticalWall.getLeft() == null) {
                     x = outerBorder;
                     y = outerBorder + cellSize * verticalWall.getRight().getI();
@@ -127,26 +123,12 @@ public class LabyrinthView {
                     y = outerBorder + cellSize * verticalWall.getLeft().getI();
                 }
                 if (color == Wall.State.ABSENT.getColor() || color == COLOR_ENTER || color == COLOR_EXIT) {
-                    graphicsContext.strokeLine(x, y + 2 * cellBorder, x, y + cellSize - 2 * cellBorder);
+                    graphicsContext.drawLine(x, y + 2 * cellBorder, x, y + cellSize - 2 * cellBorder);
                 } else {
-                    graphicsContext.strokeLine(x, y, x, y + cellSize);
+                    graphicsContext.drawLine(x, y, x, y + cellSize);
                 }
             }
         }
-    }
-
-    private class SnapshotMaker implements Runnable {
-
-        WritableImage result;
-
-        @Override
-        public void run() {
-            synchronized (this) {
-                result = canvas.snapshot(null, null);
-                notifyAll();
-            }
-        }
-
     }
 
 }

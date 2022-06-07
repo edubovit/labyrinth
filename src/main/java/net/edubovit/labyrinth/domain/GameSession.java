@@ -9,12 +9,10 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class GameSession {
+public class GameSession implements Identifiable<UUID> {
 
     private UUID id;
 
-    private LabyrinthProcessor labyrinth;
-
-    private Cell playerPosition;
+    private LabyrinthProcessor processor;
 
 }

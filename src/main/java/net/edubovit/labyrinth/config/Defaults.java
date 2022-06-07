@@ -10,6 +10,6 @@ public interface Defaults {
 
     int DEFAULT_CELL_BORDER = 1;
 
-    int DEFAULT_OUTER_BORDER = 5;
+    int DEFAULT_OUTER_BORDER = 6;
 
 }
