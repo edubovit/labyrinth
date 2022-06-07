@@ -3,10 +3,18 @@ plugins {
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.13'
     id 'org.beryx.jlink' version '2.24.1'
+    id 'org.springframework.boot' version '2.7.0'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
 group 'net.edubovit'
-version '1.0.0'
+version '2.0.0'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
 
 repositories {
     mavenCentral()
@@ -21,17 +29,22 @@ tasks.withType(JavaCompile) {
 
 application {
     mainModule = 'net.edubovit.labyrinth'
-    mainClass = 'net.edubovit.labyrinth.LabyrinthApplication'
+    mainClass = 'net.edubovit.labyrinth.LabyrinthApiApplication'
 }
 
 javafx {
     version = '18.0.1'
-    modules = ['javafx.controls']
+    modules = ['javafx.controls', 'javafx.swing']
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.24'
-    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 }
 
 jlink {

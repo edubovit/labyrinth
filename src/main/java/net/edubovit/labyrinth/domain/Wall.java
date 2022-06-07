@@ -1,4 +1,4 @@
-package net.edubovit.labyrinth;
+package net.edubovit.labyrinth.domain;
 
 import javafx.scene.paint.Color;
 import lombok.Getter;

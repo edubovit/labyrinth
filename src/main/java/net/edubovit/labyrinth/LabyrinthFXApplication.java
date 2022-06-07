@@ -1,19 +1,19 @@
 package net.edubovit.labyrinth;
 
+import net.edubovit.labyrinth.domain.Labyrinth;
+import net.edubovit.labyrinth.service.LabyrinthProcessor;
+import net.edubovit.labyrinth.service.LabyrinthView;
+
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-public class LabyrinthApplication extends Application {
+import static net.edubovit.labyrinth.config.Defaults.DEFAULT_CELL_BORDER;
+import static net.edubovit.labyrinth.config.Defaults.DEFAULT_CELL_SIZE;
+import static net.edubovit.labyrinth.config.Defaults.DEFAULT_HEIGHT;
+import static net.edubovit.labyrinth.config.Defaults.DEFAULT_OUTER_BORDER;
+import static net.edubovit.labyrinth.config.Defaults.DEFAULT_WIDTH;
 
-    private static final int DEFAULT_WIDTH = 20;
-
-    private static final int DEFAULT_HEIGHT = 20;
-
-    private static final int DEFAULT_CELL_SIZE = 20;
-
-    private static final int DEFAULT_CELL_BORDER = 1;
-
-    private static final int DEFAULT_OUTER_BORDER = 5;
+public class LabyrinthFXApplication extends Application {
 
     public static void main(String[] args) {
         launch(args);
@@ -26,11 +26,11 @@ public class LabyrinthApplication extends Application {
         int cellSize = readIntParameter("cell", DEFAULT_CELL_SIZE);
         int cellBorder = readIntParameter("cell-border", DEFAULT_CELL_BORDER);
         int outerBorder = readIntParameter("outer-border", DEFAULT_OUTER_BORDER);
-        var service = new LabyrinthService(
+        var service = new LabyrinthProcessor(
                 new Labyrinth(width, height, readSeed()),
                 new LabyrinthView(width, height, cellSize, cellBorder, outerBorder));
         service.init(primaryStage);
-        service.digUntilReady();
+        service.generate();
     }
 
     private int readIntParameter(String name, int defaultValue) {

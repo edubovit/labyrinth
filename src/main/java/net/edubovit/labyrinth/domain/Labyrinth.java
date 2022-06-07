@@ -1,6 +1,5 @@
-package net.edubovit.labyrinth;
+package net.edubovit.labyrinth.domain;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -8,9 +7,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 
-import static net.edubovit.labyrinth.Wall.State.ABSENT;
-import static net.edubovit.labyrinth.Wall.State.FINAL;
-import static net.edubovit.labyrinth.Wall.State.PLAN;
+import static net.edubovit.labyrinth.domain.Wall.State.ABSENT;
+import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
+import static net.edubovit.labyrinth.domain.Wall.State.PLAN;
 
 public class Labyrinth {
 
@@ -84,6 +83,17 @@ public class Labyrinth {
         } while (cell != null);
     }
 
+    public Way chooseRandomWay() {
+        if (availableDigDirections.isEmpty()) {
+            return null;
+        }
+        return availableDigDirections.get(random.nextInt(availableDigDirections.size()));
+    }
+
+    public Cell getCell(int x, int y) {
+        return matrix[y][x];
+    }
+
     private void dig(Cell cell, DigDirection to) {
         availableDigDirections.remove(new Way(cell, to));
         if (to == DigDirection.UP) {
@@ -134,13 +144,6 @@ public class Labyrinth {
                 availableDigDirections.remove(new Way(cell, DigDirection.RIGHT));
             }
         }
-    }
-
-    public Way chooseRandomWay() {
-        if (availableDigDirections.isEmpty()) {
-            return null;
-        }
-        return availableDigDirections.get(random.nextInt(availableDigDirections.size()));
     }
 
     private DigDirection chooseRandomDirection(DigDirection previousDirection) {

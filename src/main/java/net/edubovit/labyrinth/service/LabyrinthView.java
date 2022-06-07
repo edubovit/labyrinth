@@ -1,9 +1,17 @@
-package net.edubovit.labyrinth;
+package net.edubovit.labyrinth.service;
 
+import net.edubovit.labyrinth.domain.Cell;
+import net.edubovit.labyrinth.domain.HorizontalWall;
+import net.edubovit.labyrinth.domain.VerticalWall;
+import net.edubovit.labyrinth.domain.Wall;
+
+import javafx.application.Platform;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import lombok.SneakyThrows;
 
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -74,6 +82,18 @@ public class LabyrinthView {
                 cellSize * 0.4, cellSize * 0.4);
     }
 
+    @SneakyThrows
+    public WritableImage snapshot() {
+        var snapshotMaker = new SnapshotMaker();
+        Platform.runLater(snapshotMaker);
+        synchronized (snapshotMaker) {
+            while (snapshotMaker.result == null) {
+                snapshotMaker.wait();
+            }
+        }
+        return snapshotMaker.result;
+    }
+
     private void drawWall(Wall wall, Color color) {
         drawWall(wall, color, 2 * cellBorder);
     }
@@ -113,6 +133,20 @@ public class LabyrinthView {
                 }
             }
         }
+    }
+
+    private class SnapshotMaker implements Runnable {
+
+        WritableImage result;
+
+        @Override
+        public void run() {
+            synchronized (this) {
+                result = canvas.snapshot(null, null);
+                notifyAll();
+            }
+        }
+
     }
 
 }

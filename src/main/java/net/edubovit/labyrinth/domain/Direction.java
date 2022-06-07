@@ -1,4 +1,4 @@
-package net.edubovit.labyrinth;
+package net.edubovit.labyrinth.domain;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,38 +1,35 @@
-package net.edubovit.labyrinth;
+package net.edubovit.labyrinth.service;
+
+import net.edubovit.labyrinth.domain.Labyrinth;
 
 import javafx.scene.Scene;
+import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@Getter
 @RequiredArgsConstructor
-public class LabyrinthService {
+public class LabyrinthProcessor {
 
     private final Labyrinth labyrinth;
 
     private final LabyrinthView view;
 
-    private final Scene scene;
-
-    public LabyrinthService(Labyrinth labyrinth, LabyrinthView view) {
-        this.labyrinth = labyrinth;
-        this.view = view;
-        scene = new Scene(view.getPane());
-    }
-
     public void init(Stage stage) {
         view.drawOuterBorders(labyrinth.getEnter(), labyrinth.getExit());
-        stage.setScene(scene);
+        stage.setScene(new Scene(view.getPane()));
         stage.show();
     }
 
-    public void digUntilReady() {
+    public void generate() {
         while (digOne());
         view.drawOuterBorders(labyrinth.getEnter(), labyrinth.getExit());
     }
 
-    public boolean digOne() {
+    public WritableImage printMap() {
+        return view.snapshot();
+    }
+
+    private boolean digOne() {
         var chosenWay = labyrinth.chooseRandomWay();
         if (chosenWay == null) {
             return false;

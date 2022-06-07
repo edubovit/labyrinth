@@ -1,8 +1,8 @@
-package net.edubovit.labyrinth;
+package net.edubovit.labyrinth.domain;
 
 import lombok.Getter;
 
-import static net.edubovit.labyrinth.Wall.State.PLAN;
+import static net.edubovit.labyrinth.domain.Wall.State.PLAN;
 
 @Getter
 public final class HorizontalWall extends Wall {
