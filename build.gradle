@@ -47,3 +47,10 @@ tasks.withType(JavaCompile) {
 tasks.withType(JavaExec) {
     jvmArgs += '--enable-preview'
 }
+
+bootBuildImage {
+    environment = [
+            "BPE_DELIM_JAVA_TOOL_OPTIONS" : " ",
+            "BPE_APPEND_JAVA_TOOL_OPTIONS" : "--enable-preview"
+    ]
+}
