@@ -27,7 +27,7 @@ tasks.withType(JavaCompile) {
 
 application {
     mainModule = 'net.edubovit.labyrinth'
-    mainClass = 'net.edubovit.labyrinth.LabyrinthApiApplication'
+    mainClass = 'net.edubovit.labyrinth.LabyrinthApplication'
 }
 
 dependencies {
