@@ -16,7 +16,7 @@ const difficulties = {
 window.onload = async () => {
     initDifficultyButtons();
     const url = new URL(window.location.href);
-    const sessionMatch = url.pathname.match(/session\/([\da-f]{35})/);
+    const sessionMatch = url.pathname.match(/session\/([\da-f-]{36})/);
     if (sessionMatch && sessionMatch[1]) {
         session = sessionMatch[1];
     }
