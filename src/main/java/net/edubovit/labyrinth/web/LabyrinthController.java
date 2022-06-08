@@ -5,6 +5,7 @@ import net.edubovit.labyrinth.dto.GameSessionDTO;
 import net.edubovit.labyrinth.service.LabyrinthApiService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("game")
+//@CrossOrigin("http://localhost:63342")
 @RequiredArgsConstructor
 public class LabyrinthController {
 

@@ -9,13 +9,12 @@ import net.edubovit.labyrinth.repository.SessionRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -33,6 +32,7 @@ public class LabyrinthApiService {
         var session = GameSession.builder()
                 .id(UUID.randomUUID())
                 .processor(processor)
+                .lastUsed(LocalDateTime.now())
                 .build();
         sessionRepository.save(session.getId(), session);
         return new GameSessionDTO(session.getId(), "/image/" + saveImage(processor.printMap()), processor.finish(), null);
@@ -55,8 +55,14 @@ public class LabyrinthApiService {
     }
 
     private GameSessionDTO move(UUID sessionId, Function<LabyrinthProcessor, Boolean> action) {
-        var processor = getProcessorBySessionId(sessionId);
+        var session = sessionRepository.get(sessionId)
+                .orElseThrow(NotFoundException::new);
+        session.setLastUsed(LocalDateTime.now());
+        var processor = session.getProcessor();
         boolean successMove = action.apply(processor);
+        if (processor.finish()) {
+            sessionRepository.delete(sessionId);
+        }
         return new GameSessionDTO(sessionId, "/image/" + saveImage(processor.printMap()), processor.finish(), successMove);
     }
 
@@ -67,12 +73,6 @@ public class LabyrinthApiService {
         ImageIO.write(image, "png", imageBytes);
         imageRepository.save(imageId, imageBytes.toByteArray());
         return imageId;
-    }
-
-    private LabyrinthProcessor getProcessorBySessionId(UUID sessionId) {
-        return sessionRepository.get(sessionId)
-                .map(GameSession::getProcessor)
-                .orElseThrow(NotFoundException::new);
     }
 
 }

@@ -6,7 +6,7 @@ import java.util.Optional;
 
 class KeyValueInMemoryRepository<K, V> {
 
-    private final Map<K, V> storageMap = new HashMap<>();
+    protected final Map<K, V> storageMap = new HashMap<>();
 
     public Optional<V> get(K key) {
         return Optional.ofNullable(storageMap.get(key));
@@ -14,6 +14,10 @@ class KeyValueInMemoryRepository<K, V> {
 
     public void save(K key, V value) {
         storageMap.put(key, value);
+    }
+
+    public void delete(K key) {
+        storageMap.remove(key);
     }
 
 }

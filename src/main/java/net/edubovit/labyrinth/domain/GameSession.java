@@ -5,6 +5,7 @@ import net.edubovit.labyrinth.service.LabyrinthProcessor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -14,5 +15,7 @@ public class GameSession implements Identifiable<UUID> {
     private UUID id;
 
     private LabyrinthProcessor processor;
+
+    private LocalDateTime lastUsed;
 
 }

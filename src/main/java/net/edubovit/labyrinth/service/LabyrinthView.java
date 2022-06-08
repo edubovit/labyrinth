@@ -23,7 +23,7 @@ public class LabyrinthView {
 
     private static final Color COLOR_EXIT = Color.GREEN;
 
-    private static final Color COLOR_HIDDEN = new Color(0xcc, 0xcc, 0x77);
+    private static final Color COLOR_HIDDEN = new Color(0xff, 0xf2, 0xcc);
 
     private static final Color COLOR_REVEALED = new Color(0xbb, 0xbb, 0xbb);
 
