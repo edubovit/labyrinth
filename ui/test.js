@@ -29,6 +29,7 @@ window.onload = async () => {
     }
     document.getElementById('image-test').src = imageUrl;
     document.getElementById('counter').innerText = `Turn ${turn++}`;
+    document.getElementById('session').innerText = `Session: ${session}`;
 }
 
 window.onkeydown = event => {
@@ -80,35 +81,41 @@ function initDifficultyButtons() {
         document.getElementById('image-test').src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
+        document.getElementById('session').innerText = `Session: ${session}`;
     }
     document.getElementById('level-easy').onclick = async () => {
         await createGame('easy');
         document.getElementById('image-test').src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
+        document.getElementById('session').innerText = `Session: ${session}`;
     }
     document.getElementById('level-medium').onclick = async () => {
         await createGame('medium');
         document.getElementById('image-test').src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
+        document.getElementById('session').innerText = `Session: ${session}`;
     }
     document.getElementById('level-hard').onclick = async () => {
         await createGame('hard');
         document.getElementById('image-test').src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
+        document.getElementById('session').innerText = `Session: ${session}`;
     }
     document.getElementById('level-brutal').onclick = async () => {
         await createGame('brutal');
         document.getElementById('image-test').src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
+        document.getElementById('session').innerText = `Session: ${session}`;
     }
     document.getElementById('level-cave').onclick = async () => {
         await createGame('cave');
         document.getElementById('image-test').src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
+        document.getElementById('session').innerText = `Session: ${session}`;
     }
 }
