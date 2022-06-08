@@ -1,5 +1,6 @@
 const apiHost = 'http://localhost:8080/';
 
+let imageTag = document.getElementById('image-test');
 let session;
 let imageUrl;
 let turn = 0;
@@ -14,7 +15,8 @@ const difficulties = {
 }
 
 window.onload = async () => {
-    initDifficultyButtons();
+    imageTag = document.getElementById('image-test');
+    initButtons();
     const url = new URL(window.location.href);
     const sessionMatch = url.pathname.match(/session\/([\da-f-]{36})/);
     if (sessionMatch && sessionMatch[1]) {
@@ -27,7 +29,7 @@ window.onload = async () => {
     } else {
         await createGame(url.searchParams.get('difficulty'));
     }
-    document.getElementById('image-test').src = imageUrl;
+    imageTag.src = imageUrl;
     document.getElementById('counter').innerText = `Turn ${turn++}`;
     document.getElementById('session').innerText = `Session: ${session}`;
 }
@@ -60,7 +62,7 @@ async function move(direction) {
     });
     const body = await response.json();
     imageUrl = `${apiHost}${body.mapUrl.substring(1)}`;
-    document.getElementById('image-test').src = imageUrl;
+    imageTag.src = imageUrl;
     document.getElementById('counter').innerText = `Turn ${turn++}`;
 }
 
@@ -75,47 +77,67 @@ async function createGame(difficulty) {
     imageUrl = `${apiHost}${body.mapUrl.substring(1)}`;
 }
 
-function initDifficultyButtons() {
+function initButtons() {
     document.getElementById('level-zero').onclick = async () => {
         await createGame('zero');
-        document.getElementById('image-test').src = imageUrl;
+        imageTag.src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
         document.getElementById('session').innerText = `Session: ${session}`;
     }
     document.getElementById('level-easy').onclick = async () => {
         await createGame('easy');
-        document.getElementById('image-test').src = imageUrl;
+        imageTag.src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
         document.getElementById('session').innerText = `Session: ${session}`;
     }
     document.getElementById('level-medium').onclick = async () => {
         await createGame('medium');
-        document.getElementById('image-test').src = imageUrl;
+        imageTag.src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
         document.getElementById('session').innerText = `Session: ${session}`;
     }
     document.getElementById('level-hard').onclick = async () => {
         await createGame('hard');
-        document.getElementById('image-test').src = imageUrl;
+        imageTag.src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
         document.getElementById('session').innerText = `Session: ${session}`;
     }
     document.getElementById('level-brutal').onclick = async () => {
         await createGame('brutal');
-        document.getElementById('image-test').src = imageUrl;
+        imageTag.src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
         document.getElementById('session').innerText = `Session: ${session}`;
     }
     document.getElementById('level-cave').onclick = async () => {
         await createGame('cave');
-        document.getElementById('image-test').src = imageUrl;
+        imageTag.src = imageUrl;
         turn = 0;
         document.getElementById('counter').innerText = `Turn ${turn++}`;
         document.getElementById('session').innerText = `Session: ${session}`;
+    }
+    imageTag.onclick = async event => {
+        const width = imageTag.offsetWidth;
+        const height = imageTag.offsetHeight;
+        const x = event.offsetX;
+        const y = event.offsetY;
+
+        if (x > y) {
+            if (x < width - y * width / height) {
+                move('up');
+            } else {
+                move('right');
+            }
+        } else {
+            if (x < width - y * width / height) {
+                move('left');
+            } else {
+                move('down');
+            }
+        }
     }
 }
