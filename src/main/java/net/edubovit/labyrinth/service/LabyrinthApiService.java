@@ -9,6 +9,7 @@ import net.edubovit.labyrinth.repository.SessionRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -20,6 +21,7 @@ import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LabyrinthApiService {
 
     private final SessionRepository sessionRepository;
@@ -27,6 +29,7 @@ public class LabyrinthApiService {
     private final ImageRepository imageRepository;
 
     public GameSessionDTO create(CreateGameRequestDTO request) {
+        log.info("creating game: {}", request.toString());
         var processor = new LabyrinthProcessor(request.width(), request.height(), request.seed(), request.cellSize(), request.cellBorder(), request.outerBorder());
         processor.generate();
         var session = GameSession.builder()
@@ -37,34 +40,44 @@ public class LabyrinthApiService {
         sessionRepository.save(session.getId(), session);
         String mapUrl = "/image/" + saveImage(processor.printMap());
         session.setMapUrl(mapUrl);
-        return new GameSessionDTO(session.getId(), mapUrl, processor.playerCoordinates(), processor.finish(), null);
+        var response = new GameSessionDTO(session.getId(), mapUrl, processor.playerCoordinates(), processor.finish(), null);
+        log.info("game created: {}", response.toString());
+        return response;
     }
 
     public GameSessionDTO getSession(UUID id) {
-        return sessionRepository.get(id)
+        log.info("reading session: {}", id.toString());
+        var response = sessionRepository.get(id)
                 .map(session -> new GameSessionDTO(session.getId(), session.getMapUrl(), session.getProcessor().playerCoordinates(), null, null))
                 .orElseThrow(NotFoundException::new);
+        log.info("retrieved session: {}", response.toString());
+        return response;
     }
 
     public GameSessionDTO moveUp(UUID sessionId) {
+        log.info("moving up: {}", sessionId.toString());
         return move(sessionId, LabyrinthProcessor::moveUp);
     }
 
     public GameSessionDTO moveDown(UUID sessionId) {
+        log.info("moving down: {}", sessionId.toString());
         return move(sessionId, LabyrinthProcessor::moveDown);
     }
 
     public GameSessionDTO moveLeft(UUID sessionId) {
+        log.info("moving left: {}", sessionId.toString());
         return move(sessionId, LabyrinthProcessor::moveLeft);
     }
 
     public GameSessionDTO moveRight(UUID sessionId) {
+        log.info("moving right: {}", sessionId.toString());
         return move(sessionId, LabyrinthProcessor::moveRight);
     }
 
     private GameSessionDTO move(UUID sessionId, Function<LabyrinthProcessor, Boolean> action) {
         var session = sessionRepository.get(sessionId)
                 .orElseThrow(NotFoundException::new);
+        session.setTurns(session.getTurns() + 1);
         session.setLastUsed(LocalDateTime.now());
         var processor = session.getProcessor();
         boolean successMove = action.apply(processor);
@@ -73,7 +86,9 @@ public class LabyrinthApiService {
         }
         String mapUrl = "/image/" + saveImage(processor.printMap());
         session.setMapUrl(mapUrl);
-        return new GameSessionDTO(sessionId, mapUrl, processor.playerCoordinates(), processor.finish(), successMove);
+        var response = new GameSessionDTO(sessionId, mapUrl, processor.playerCoordinates(), processor.finish(), successMove);
+        log.info("movement result: {}", response);
+        return response;
     }
 
     @SneakyThrows

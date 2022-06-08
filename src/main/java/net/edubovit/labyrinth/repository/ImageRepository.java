@@ -2,14 +2,16 @@ package net.edubovit.labyrinth.repository;
 
 import net.edubovit.labyrinth.config.Defaults;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
 @Repository
+@Slf4j
 public class ImageRepository extends KeyValueInMemoryRepository<UUID, byte[]> {
 
-    private StoredImage[] lastStored = new StoredImage[Defaults.STORE_LAST_IMAGES];
+    private final StoredImage[] lastStored = new StoredImage[Defaults.STORE_LAST_IMAGES];
 
     private int lastStoredIdx = 0;
 
@@ -23,10 +25,12 @@ public class ImageRepository extends KeyValueInMemoryRepository<UUID, byte[]> {
     }
 
     private void cleanup() {
+        log.info("It's time to images cleanup! Currently images stored: {}", storageMap.size());
         storageMap.clear();
         for (var storedImage : lastStored) {
             storageMap.put(storedImage.id, storedImage.bytes);
         }
+        log.info("Images survived: {}", storageMap.size());
     }
 
     private record StoredImage(UUID id, byte[] bytes) {

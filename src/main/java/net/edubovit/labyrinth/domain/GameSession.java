@@ -18,6 +18,8 @@ public class GameSession implements Identifiable<UUID> {
 
     private String mapUrl;
 
+    private int turns;
+
     private LocalDateTime lastUsed;
 
 }

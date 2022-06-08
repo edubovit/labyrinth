@@ -91,7 +91,6 @@ public class LabyrinthProcessor {
                 cell.setVisibility(REVEALED);
                 view.drawCell(cell);
             });
-//            view.removePlayer(player.getPosition());
             player.setPosition(direction.getCell());
             player.setSeenTiles(seenTiles());
             player.getSeenTiles().forEach(cell -> {

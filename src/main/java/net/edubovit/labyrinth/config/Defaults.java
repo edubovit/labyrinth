@@ -24,4 +24,8 @@ public interface Defaults {
 
     Duration SESSION_STORAGE_TIME = Duration.ofDays(1);
 
+    int STALE_SESSION_TURNS = 10;
+
+    Duration STALE_SESSION_STORAGE_TIME = Duration.ofMinutes(10);
+
 }
