@@ -1,11 +1,24 @@
 package net.edubovit.labyrinth.service;
 
+import net.edubovit.labyrinth.config.Defaults;
+import net.edubovit.labyrinth.domain.Cell;
 import net.edubovit.labyrinth.domain.Direction;
 import net.edubovit.labyrinth.domain.Labyrinth;
 import net.edubovit.labyrinth.domain.Player;
 import net.edubovit.labyrinth.domain.Wall;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
+
+import static net.edubovit.labyrinth.config.Defaults.VIEW_DISTANCE;
+import static net.edubovit.labyrinth.domain.Cell.Visibility.REVEALED;
+import static net.edubovit.labyrinth.domain.Cell.Visibility.SEEN;
+import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
 
 public class LabyrinthProcessor {
 
@@ -30,6 +43,11 @@ public class LabyrinthProcessor {
     public void generate() {
         while (digOne());
         player.setPosition(labyrinth.getCell(width - 1, height - 1));
+        player.setSeenTiles(seenTiles());
+        player.getSeenTiles().forEach(cell -> {
+            cell.setVisibility(SEEN);
+            view.drawCell(cell);
+        });
         view.drawOuterBorders(labyrinth.getEnter(), labyrinth.getExit());
         view.drawPlayer(player.getPosition());
     }
@@ -59,11 +77,20 @@ public class LabyrinthProcessor {
     }
 
     private boolean move(Direction<?> direction) {
-        if (direction.getWall().getState() == Wall.State.FINAL) {
+        if (direction.getWall().getState() == FINAL) {
             return false;
         } else {
-            view.removePlayer(player.getPosition());
+            player.getSeenTiles().forEach(cell -> {
+                cell.setVisibility(REVEALED);
+                view.drawCell(cell);
+            });
+//            view.removePlayer(player.getPosition());
             player.setPosition(direction.getCell());
+            player.setSeenTiles(seenTiles());
+            player.getSeenTiles().forEach(cell -> {
+                cell.setVisibility(SEEN);
+                view.drawCell(cell);
+            });
             view.drawPlayer(player.getPosition());
             return true;
         }
@@ -74,9 +101,38 @@ public class LabyrinthProcessor {
         if (chosenWay == null) {
             return false;
         } else {
-            labyrinth.digTunnel(chosenWay, view::drawCell);
+            labyrinth.digTunnel(chosenWay, cell -> {});
             return true;
         }
+    }
+
+    private Collection<Cell> seenTiles() {
+        var result = new ArrayList<Cell>();
+        var position = player.getPosition();
+        result.add(position);
+        result.addAll(viewDirection(position, Cell::getUp, cell -> Stream.of(cell.getLeft(), cell.getRight())));
+        result.addAll(viewDirection(position, Cell::getDown, cell -> Stream.of(cell.getLeft(), cell.getRight())));
+        result.addAll(viewDirection(position, Cell::getLeft, cell -> Stream.of(cell.getUp(), cell.getDown())));
+        result.addAll(viewDirection(position, Cell::getRight, cell -> Stream.of(cell.getUp(), cell.getDown())));
+        return result;
+    }
+
+    private Collection<Cell> viewDirection(Cell start, Function<Cell, Direction<?>> next, Function<Cell, Stream<Direction<?>>> adjacent) {
+        var result = new ArrayList<Cell>();
+        var cell = start;
+        for (int i = 0; i < VIEW_DISTANCE; i++) {
+            var direction = next.apply(cell);
+            if (direction.getWall().getState() == FINAL) {
+                break;
+            }
+            cell = direction.getCell();
+            result.add(cell);
+            adjacent.apply(cell)
+                    .filter(dir -> dir.getWall().getState() != FINAL)
+                    .map(Direction::getCell)
+                    .forEach(result::add);
+        }
+        return result;
     }
 
 }

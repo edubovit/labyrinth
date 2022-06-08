@@ -12,4 +12,6 @@ public interface Defaults {
 
     int DEFAULT_OUTER_BORDER = 6;
 
+    int VIEW_DISTANCE = 4;
+
 }
