@@ -3,6 +3,7 @@ const apiHost = 'http://localhost:8080/';
 let imageTag = document.getElementById('image-test');
 let session;
 let imageUrl;
+let playerCoordinates;
 let turn = 0;
 
 const difficulties = {
@@ -63,6 +64,7 @@ async function move(direction) {
     const body = await response.json();
     imageUrl = `${apiHost}${body.mapUrl.substring(1)}`;
     imageTag.src = imageUrl;
+    playerCoordinates = body.playerCoordinates;
     document.getElementById('counter').innerText = `Turn ${turn++}`;
 }
 
@@ -75,6 +77,7 @@ async function createGame(difficulty) {
     const body = await response.json();
     session = body.id;
     imageUrl = `${apiHost}${body.mapUrl.substring(1)}`;
+    playerCoordinates = body.playerCoordinates;
 }
 
 function initButtons() {
@@ -121,22 +124,19 @@ function initButtons() {
         document.getElementById('session').innerText = `Session: ${session}`;
     }
     imageTag.onclick = async event => {
-        const width = imageTag.offsetWidth;
-        const height = imageTag.offsetHeight;
-        const x = event.offsetX;
-        const y = event.offsetY;
-
-        if (x > y) {
-            if (x < width - y * width / height) {
+        const offsetX = event.offsetX - playerCoordinates.x;
+        const offsetY = event.offsetY - playerCoordinates.y;
+        if (Math.abs(offsetY) > Math.abs(offsetX)) {
+            if (offsetY < 0) {
                 move('up');
             } else {
-                move('right');
+                move('down');
             }
         } else {
-            if (x < width - y * width / height) {
+            if (offsetX < 0) {
                 move('left');
             } else {
-                move('down');
+                move('right');
             }
         }
     }

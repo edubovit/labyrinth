@@ -5,6 +5,8 @@ import net.edubovit.labyrinth.domain.HorizontalWall;
 import net.edubovit.labyrinth.domain.VerticalWall;
 import net.edubovit.labyrinth.domain.Wall;
 
+import lombok.Getter;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -33,16 +35,22 @@ public class LabyrinthView {
 
     private final int fieldHeight;
 
+    @Getter
     private final int cellSize;
 
+    @Getter
     private final int cellBorder;
 
+    @Getter
     private final int outerBorder;
 
+    @Getter
     private final int canvasWidth;
 
+    @Getter
     private final int canvasHeight;
 
+    @Getter
     private final BufferedImage canvas;
 
     private final Graphics2D graphicsContext;
@@ -87,16 +95,12 @@ public class LabyrinthView {
         var down = cell.getDown().getWall();
         Stream.of(up, left, right, down)
                 .filter(Objects::nonNull)
-                .forEach(wall -> drawWall(wall));
+                .forEach(this::drawWall);
         if (cell.getVisibility() == HIDDEN) {
             graphicsContext.setColor(COLOR_HIDDEN);
             graphicsContext.fillRect(outerBorder + cellSize * cell.getJ(), outerBorder + cellSize * cell.getI(),
                     cellSize, cellSize);
         }
-    }
-
-    public BufferedImage snapshot() {
-        return canvas;
     }
 
     public void drawPlayer(Cell cell) {

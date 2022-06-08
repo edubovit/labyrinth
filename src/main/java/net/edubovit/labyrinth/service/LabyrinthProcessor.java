@@ -1,18 +1,15 @@
 package net.edubovit.labyrinth.service;
 
-import net.edubovit.labyrinth.config.Defaults;
 import net.edubovit.labyrinth.domain.Cell;
 import net.edubovit.labyrinth.domain.Direction;
 import net.edubovit.labyrinth.domain.Labyrinth;
 import net.edubovit.labyrinth.domain.Player;
-import net.edubovit.labyrinth.domain.Wall;
+import net.edubovit.labyrinth.dto.GameSessionDTO;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import static net.edubovit.labyrinth.config.Defaults.VIEW_DISTANCE;
@@ -53,7 +50,7 @@ public class LabyrinthProcessor {
     }
 
     public BufferedImage printMap() {
-        return view.snapshot();
+        return view.getCanvas();
     }
 
     public boolean moveUp() {
@@ -74,6 +71,16 @@ public class LabyrinthProcessor {
 
     public boolean finish() {
         return player.getPosition().getUp().getWall() == labyrinth.getExit();
+    }
+
+    public GameSessionDTO.PlayerCoordinates playerCoordinates() {
+        int cellSize = view.getCellSize();
+        int i = player.getPosition().getI();
+        int j = player.getPosition().getJ();
+        int outerBorder = view.getOuterBorder();
+        return new GameSessionDTO.PlayerCoordinates(
+                outerBorder + j * cellSize + cellSize / 2,
+                outerBorder + i * cellSize + cellSize / 2);
     }
 
     private boolean move(Direction<?> direction) {
