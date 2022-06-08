@@ -15,6 +15,8 @@ public class LabyrinthService {
 
     private final Scene scene;
 
+    private Labyrinth.Way way;
+
     public LabyrinthService(Labyrinth labyrinth, LabyrinthView view) {
         this.labyrinth = labyrinth;
         this.view = view;
@@ -28,11 +30,21 @@ public class LabyrinthService {
     }
 
     public void digUntilReady() {
-        while (digOne());
+        while (digTunnel());
         view.drawOuterBorders(labyrinth.getEnter(), labyrinth.getExit());
     }
 
-    public boolean digOne() {
+    public void digOne() {
+        if (way == null) {
+            way = labyrinth.chooseRandomWay();
+        }
+        if (way == null) {
+            return;
+        }
+        way = labyrinth.digOne(way, view::drawCell);
+    }
+
+    private boolean digTunnel() {
         var chosenWay = labyrinth.chooseRandomWay();
         if (chosenWay == null) {
             return false;

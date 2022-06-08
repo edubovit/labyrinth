@@ -84,6 +84,20 @@ public class Labyrinth {
         } while (cell != null);
     }
 
+    public Way digOne(Way way, Consumer<Cell> cellDiggedListener) {
+        var cell = way.next;
+        var direction = way.to;
+        dig(cell, direction);
+        cellDiggedListener.accept(cell);
+        direction = chooseRandomDirection(direction);
+        cell = direction.getCell(cell);
+        if (cell == null) {
+            return null;
+        } else {
+            return new Way(cell, direction);
+        }
+    }
+
     private void dig(Cell cell, DigDirection to) {
         availableDigDirections.remove(new Way(cell, to));
         if (to == DigDirection.UP) {
@@ -148,15 +162,16 @@ public class Labyrinth {
     }
 
     public record Way(Cell next, DigDirection to) {
+
     }
 
     public enum DigDirection {
         UP, LEFT, RIGHT, DOWN;
 
-        private static final DigDirection[] nextPossibleDirectionsUp = new DigDirection[] { LEFT, UP, RIGHT };
-        private static final DigDirection[] nextPossibleDirectionsLeft = new DigDirection[] { DOWN, LEFT, UP };
-        private static final DigDirection[] nextPossibleDirectionsRight = new DigDirection[] { UP, RIGHT, DOWN };
-        private static final DigDirection[] nextPossibleDirectionsDown = new DigDirection[] { RIGHT, DOWN, LEFT };
+        private static final DigDirection[] nextPossibleDirectionsUp = new DigDirection[]{ LEFT, UP, RIGHT };
+        private static final DigDirection[] nextPossibleDirectionsLeft = new DigDirection[]{ DOWN, LEFT, UP };
+        private static final DigDirection[] nextPossibleDirectionsRight = new DigDirection[]{ UP, RIGHT, DOWN };
+        private static final DigDirection[] nextPossibleDirectionsDown = new DigDirection[]{ RIGHT, DOWN, LEFT };
 
         private DigDirection[] nextPossibleDirections() {
             return switch (this) {
