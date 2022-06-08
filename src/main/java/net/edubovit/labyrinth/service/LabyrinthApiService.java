@@ -40,7 +40,8 @@ public class LabyrinthApiService {
         sessionRepository.save(session.getId(), session);
         String mapUrl = "/image/" + saveImage(processor.printMap());
         session.setMapUrl(mapUrl);
-        var response = new GameSessionDTO(session.getId(), mapUrl, processor.playerCoordinates(), processor.finish(), null);
+        var response = new GameSessionDTO(session.getId(), mapUrl, processor.playerCoordinates(),
+                session.getTurns(), processor.finish(), null);
         log.info("game created: {}", response.toString());
         return response;
     }
@@ -48,7 +49,8 @@ public class LabyrinthApiService {
     public GameSessionDTO getSession(UUID id) {
         log.info("reading session: {}", id.toString());
         var response = sessionRepository.get(id)
-                .map(session -> new GameSessionDTO(session.getId(), session.getMapUrl(), session.getProcessor().playerCoordinates(), null, null))
+                .map(session -> new GameSessionDTO(session.getId(), session.getMapUrl(), session.getProcessor().playerCoordinates(),
+                        session.getTurns(), null, null))
                 .orElseThrow(NotFoundException::new);
         log.info("retrieved session: {}", response.toString());
         return response;
@@ -86,7 +88,8 @@ public class LabyrinthApiService {
         }
         String mapUrl = "/image/" + saveImage(processor.printMap());
         session.setMapUrl(mapUrl);
-        var response = new GameSessionDTO(sessionId, mapUrl, processor.playerCoordinates(), processor.finish(), successMove);
+        var response = new GameSessionDTO(sessionId, mapUrl, processor.playerCoordinates(),
+                session.getTurns(), processor.finish(), successMove);
         log.info("movement result: {}", response);
         return response;
     }
