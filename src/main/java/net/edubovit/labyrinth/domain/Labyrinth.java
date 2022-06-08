@@ -97,7 +97,9 @@ public class Labyrinth {
     private void dig(Cell cell, DigDirection to) {
         availableDigDirections.remove(new Way(cell, to));
         if (to == DigDirection.UP) {
-            cell.getDown().getWall().setState(ABSENT);
+            if (cell.getDown().getWall().getState() != FINAL) {
+                cell.getDown().getWall().setState(ABSENT);
+            }
         } else {
             var wall = cell.getDown().getWall();
             if (wall.getState() == ABSENT) {
@@ -109,7 +111,9 @@ public class Labyrinth {
             }
         }
         if (to == DigDirection.DOWN) {
-            cell.getUp().getWall().setState(ABSENT);
+            if (cell.getUp().getWall().getState() != FINAL) {
+                cell.getUp().getWall().setState(ABSENT);
+            }
         } else {
             var wall = cell.getUp().getWall();
             if (wall.getState() == ABSENT) {
@@ -121,7 +125,9 @@ public class Labyrinth {
             }
         }
         if (to == DigDirection.LEFT) {
-            cell.getRight().getWall().setState(ABSENT);
+            if (cell.getRight().getWall().getState() != FINAL) {
+                cell.getRight().getWall().setState(ABSENT);
+            }
         } else {
             var wall = cell.getRight().getWall();
             if (wall.getState() == ABSENT) {
@@ -133,7 +139,9 @@ public class Labyrinth {
             }
         }
         if (to == DigDirection.RIGHT) {
-            cell.getLeft().getWall().setState(ABSENT);
+            if (cell.getLeft().getWall().getState() != FINAL) {
+                cell.getLeft().getWall().setState(ABSENT);
+            }
         } else {
             var wall = cell.getLeft().getWall();
             if (wall.getState() == ABSENT) {
