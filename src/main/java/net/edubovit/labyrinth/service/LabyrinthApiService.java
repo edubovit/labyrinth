@@ -35,7 +35,15 @@ public class LabyrinthApiService {
                 .lastUsed(LocalDateTime.now())
                 .build();
         sessionRepository.save(session.getId(), session);
-        return new GameSessionDTO(session.getId(), "/image/" + saveImage(processor.printMap()), processor.finish(), null);
+        String mapUrl = "/image/" + saveImage(processor.printMap());
+        session.setMapUrl(mapUrl);
+        return new GameSessionDTO(session.getId(), mapUrl, processor.finish(), null);
+    }
+
+    public GameSessionDTO getSession(UUID id) {
+        return sessionRepository.get(id)
+                .map(session -> new GameSessionDTO(session.getId(), session.getMapUrl(), null, null))
+                .orElseThrow(NotFoundException::new);
     }
 
     public GameSessionDTO moveUp(UUID sessionId) {
@@ -63,7 +71,9 @@ public class LabyrinthApiService {
         if (processor.finish()) {
             sessionRepository.delete(sessionId);
         }
-        return new GameSessionDTO(sessionId, "/image/" + saveImage(processor.printMap()), processor.finish(), successMove);
+        String mapUrl = "/image/" + saveImage(processor.printMap());
+        session.setMapUrl(mapUrl);
+        return new GameSessionDTO(sessionId, mapUrl, processor.finish(), successMove);
     }
 
     @SneakyThrows

@@ -16,6 +16,8 @@ public class GameSession implements Identifiable<UUID> {
 
     private LabyrinthProcessor processor;
 
+    private String mapUrl;
+
     private LocalDateTime lastUsed;
 
 }
