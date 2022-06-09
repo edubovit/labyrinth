@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("game")
-//@CrossOrigin("http://localhost:63342")
+@CrossOrigin({ "http://localhost:63342", "http://192.168.1.10:8001" })
 @RequiredArgsConstructor
 public class GameController {
 
