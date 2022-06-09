@@ -1,3 +1,6 @@
+server:
+  port: 23900
+
 logging:
   file:
     name: labyrinth.log
