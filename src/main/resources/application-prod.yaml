@@ -6,4 +6,5 @@ logging:
     name: labyrinth.log
 
 labyrinth:
-  allowed-origins: []
+  allowed-origins:
+    - http://192.168.1.10:8001
