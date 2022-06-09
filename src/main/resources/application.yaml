@@ -1,6 +1,4 @@
-spring:
-  profiles:
-    active: dev
-
 labyrinth:
-  allowed-origins: []
+  allowed-origins:
+    - http://localhost:63342
+    - http://192.168.1.10:8001
