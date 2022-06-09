@@ -13,7 +13,14 @@ import static net.edubovit.labyrinth.domain.Wall.State.PLAN;
 
 public class Labyrinth {
 
+    @Getter
     private final Cell[][] matrix;
+
+    @Getter
+    private final int width;
+
+    @Getter
+    private final int height;
 
     @Getter
     private final HorizontalWall enter;
@@ -26,6 +33,8 @@ public class Labyrinth {
     private final List<Way> availableDigDirections;
 
     public Labyrinth(int width, int height, long seed) {
+        this.width = width;
+        this.height = height;
         matrix = new Cell[height][width];
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {

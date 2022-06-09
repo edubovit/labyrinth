@@ -3,6 +3,7 @@ package net.edubovit.labyrinth.service;
 import net.edubovit.labyrinth.domain.GameSession;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
 import net.edubovit.labyrinth.dto.GameSessionDTO;
+import net.edubovit.labyrinth.dto.LabyrinthDTO;
 import net.edubovit.labyrinth.exception.NotFoundException;
 import net.edubovit.labyrinth.repository.ImageRepository;
 import net.edubovit.labyrinth.repository.SessionRepository;
@@ -22,7 +23,7 @@ import java.util.function.Function;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class LabyrinthApiService {
+public class GameService {
 
     private final SessionRepository sessionRepository;
 

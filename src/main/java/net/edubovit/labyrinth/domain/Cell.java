@@ -32,6 +32,4 @@ public class Cell {
         down = new Direction<>();
     }
 
-    public enum Visibility { HIDDEN, REVEALED, SEEN }
-
 }

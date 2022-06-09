@@ -14,9 +14,9 @@ import java.awt.image.BufferedImage;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static net.edubovit.labyrinth.domain.Cell.Visibility.HIDDEN;
-import static net.edubovit.labyrinth.domain.Cell.Visibility.REVEALED;
-import static net.edubovit.labyrinth.domain.Cell.Visibility.SEEN;
+import static net.edubovit.labyrinth.domain.Visibility.HIDDEN;
+import static net.edubovit.labyrinth.domain.Visibility.REVEALED;
+import static net.edubovit.labyrinth.domain.Visibility.SEEN;
 import static net.edubovit.labyrinth.domain.Wall.State.ABSENT;
 
 public class LabyrinthView {

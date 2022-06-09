@@ -5,6 +5,7 @@ import net.edubovit.labyrinth.domain.Direction;
 import net.edubovit.labyrinth.domain.Labyrinth;
 import net.edubovit.labyrinth.domain.Player;
 import net.edubovit.labyrinth.dto.GameSessionDTO;
+import net.edubovit.labyrinth.dto.LabyrinthDTO;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -13,9 +14,10 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static net.edubovit.labyrinth.config.Defaults.VIEW_DISTANCE;
-import static net.edubovit.labyrinth.domain.Cell.Visibility.REVEALED;
-import static net.edubovit.labyrinth.domain.Cell.Visibility.SEEN;
+import static net.edubovit.labyrinth.domain.Visibility.REVEALED;
+import static net.edubovit.labyrinth.domain.Visibility.SEEN;
 import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
+import static java.util.Collections.singletonList;
 
 public class LabyrinthProcessor {
 
@@ -81,6 +83,10 @@ public class LabyrinthProcessor {
         return new GameSessionDTO.PlayerCoordinates(
                 outerBorder + j * cellSize + cellSize / 2,
                 outerBorder + i * cellSize + cellSize / 2);
+    }
+
+    public LabyrinthDTO getLabyrinthDTO() {
+        return new LabyrinthDTO(labyrinth, singletonList(player));
     }
 
     private boolean move(Direction<?> direction) {
