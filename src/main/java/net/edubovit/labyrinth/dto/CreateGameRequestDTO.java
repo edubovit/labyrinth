@@ -3,6 +3,7 @@ package net.edubovit.labyrinth.dto;
 import net.edubovit.labyrinth.config.Defaults;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record CreateGameRequestDTO(int width,
                                    int height,
@@ -12,12 +13,12 @@ public record CreateGameRequestDTO(int width,
                                    long seed) {
 
     @JsonCreator
-    public CreateGameRequestDTO(Integer width,
-                                Integer height,
-                                Integer cellSize,
-                                Integer cellBorder,
-                                Integer outerBorder,
-                                Long seed) {
+    public CreateGameRequestDTO(@JsonProperty("width") Integer width,
+                                @JsonProperty("height") Integer height,
+                                @JsonProperty("cellSize") Integer cellSize,
+                                @JsonProperty("cellBorder") Integer cellBorder,
+                                @JsonProperty("outerBorder") Integer outerBorder,
+                                @JsonProperty("seed") Long seed) {
         this(
                 readPositiveIntOrDefault(width, Defaults.DEFAULT_WIDTH),
                 readPositiveIntOrDefault(height, Defaults.DEFAULT_HEIGHT),
