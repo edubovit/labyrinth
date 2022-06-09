@@ -3,7 +3,6 @@ package net.edubovit.labyrinth.service;
 import net.edubovit.labyrinth.domain.GameSession;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
 import net.edubovit.labyrinth.dto.GameSessionDTO;
-import net.edubovit.labyrinth.dto.LabyrinthDTO;
 import net.edubovit.labyrinth.exception.NotFoundException;
 import net.edubovit.labyrinth.repository.ImageRepository;
 import net.edubovit.labyrinth.repository.SessionRepository;
@@ -31,7 +30,8 @@ public class GameService {
 
     public GameSessionDTO create(CreateGameRequestDTO request) {
         log.info("creating game: {}", request.toString());
-        var processor = new LabyrinthProcessor(request.width(), request.height(), request.seed(), request.cellSize(), request.cellBorder(), request.outerBorder());
+        var processor = new LabyrinthProcessor(request.width(), request.height(), request.seed(),
+                request.cellSize(), request.cellBorder(), request.outerBorder());
         processor.generate();
         var session = GameSession.builder()
                 .id(UUID.randomUUID())
@@ -41,8 +41,14 @@ public class GameService {
         sessionRepository.save(session.getId(), session);
         String mapUrl = "/image/" + saveImage(processor.printMap());
         session.setMapUrl(mapUrl);
-        var response = new GameSessionDTO(session.getId(), mapUrl, processor.playerCoordinates(),
-                session.getTurns(), processor.finish(), null);
+        var response = new GameSessionDTO(
+                session.getId(),
+                mapUrl,
+                processor.getLabyrinthDTO(),
+                processor.playerCoordinates(),
+                session.getTurns(),
+                processor.finish(),
+                null);
         log.info("game created: {}", response.toString());
         return response;
     }
@@ -50,8 +56,14 @@ public class GameService {
     public GameSessionDTO getSession(UUID id) {
         log.info("reading session: {}", id.toString());
         var response = sessionRepository.get(id)
-                .map(session -> new GameSessionDTO(session.getId(), session.getMapUrl(), session.getProcessor().playerCoordinates(),
-                        session.getTurns(), null, null))
+                .map(session -> new GameSessionDTO(
+                        session.getId(),
+                        session.getMapUrl(),
+                        session.getProcessor().getLabyrinthDTO(),
+                        session.getProcessor().playerCoordinates(),
+                        session.getTurns(),
+                        null,
+                        null))
                 .orElseThrow(NotFoundException::new);
         log.info("retrieved session: {}", response.toString());
         return response;
@@ -89,7 +101,7 @@ public class GameService {
         }
         String mapUrl = "/image/" + saveImage(processor.printMap());
         session.setMapUrl(mapUrl);
-        var response = new GameSessionDTO(sessionId, mapUrl, processor.playerCoordinates(),
+        var response = new GameSessionDTO(sessionId, mapUrl, processor.getLabyrinthDTO(), processor.playerCoordinates(),
                 session.getTurns(), processor.finish(), successMove);
         log.info("movement result: {}", response);
         return response;

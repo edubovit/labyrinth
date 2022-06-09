@@ -82,7 +82,9 @@ public class LabyrinthProcessor {
         int outerBorder = view.getOuterBorder();
         return new GameSessionDTO.PlayerCoordinates(
                 outerBorder + j * cellSize + cellSize / 2,
-                outerBorder + i * cellSize + cellSize / 2);
+                outerBorder + i * cellSize + cellSize / 2,
+                i,
+                j);
     }
 
     public LabyrinthDTO getLabyrinthDTO() {
