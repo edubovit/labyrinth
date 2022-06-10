@@ -1,10 +1,16 @@
-const SCALE = 1 // step 0.5
+const SCALE = 1// step 0.5
 
 const BLOCK_SIZE = 40 * SCALE
 const LINE_SIZE = 2 * SCALE // step 2
 const HALF_LINE_SIZE = Math.floor(LINE_SIZE / 2)
 const OUTER_BORDER_SIZE = 3 * SCALE
 const PLAYER_SIZE = BLOCK_SIZE / 2
+
+const REVEALED_COLOR = "#fff2cc"
+const HIDDEN_COLOR = "#bbb"
+const SEEN_COLOR = "#fff"
+const BORDER_COLOR = "#000"
+const PLAYER_COLOR = "#ff7700"
 
 const API_HOST = 'http://localhost:8080';
 // const API_HOST = 'https://labyrinth.edubovit.net/api'
@@ -24,7 +30,7 @@ function draw(map, userPos) {
 }
 
 function drawFieldBoard() {
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = BORDER_COLOR;
     ctx.fillRect(0, 0, canvas.width, OUTER_BORDER_SIZE + SCALE);
     ctx.fillRect(canvas.width - OUTER_BORDER_SIZE - SCALE, 0, OUTER_BORDER_SIZE + SCALE, canvas.height);
     ctx.fillRect(0, canvas.height - OUTER_BORDER_SIZE - SCALE, canvas.width, OUTER_BORDER_SIZE + SCALE);
@@ -34,48 +40,48 @@ function drawFieldBoard() {
 function drawBlocks(map) {
     for (let i = 0; i < map.length; i++) {
         for (let j = 0; j < map[i].length; j++) {
-            drawBlock(i, j, map[i][j])
+            drawBlock(j, i, map[i][j])
         }
     }
     for (let i = 0; i < map.length; i++) {
         for (let j = 0; j < map[i].length; j++) {
-            drawBlockBorder(i, j, map[i][j])
+            drawBlockBorder(j, i, map[i][j])
         }
     }
 }
 
 function drawBlock(i, j, item) {
-    const newY = OUTER_BORDER_SIZE + i * BLOCK_SIZE
-    const newX = OUTER_BORDER_SIZE + j * BLOCK_SIZE
+    const newX = OUTER_BORDER_SIZE + i * BLOCK_SIZE
+    const newY = OUTER_BORDER_SIZE + j * BLOCK_SIZE
 
     if (item.visibility === "REVEALED") {
-        ctx.fillStyle = "#fff2cc";
+        ctx.fillStyle = REVEALED_COLOR;
     } else if (item.visibility === "HIDDEN") {
-        ctx.fillStyle = "#bbb";
+        ctx.fillStyle = HIDDEN_COLOR;
     } else if (item.visibility === "SEEN") {
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = SEEN_COLOR;
     }
     ctx.fillRect(newX, newY, BLOCK_SIZE, BLOCK_SIZE);
 }
 
 function drawBlockBorder(i, j, item) {
-    const newY = OUTER_BORDER_SIZE + i * BLOCK_SIZE
-    const newX = OUTER_BORDER_SIZE + j * BLOCK_SIZE
+    const newX = OUTER_BORDER_SIZE + i * BLOCK_SIZE
+    const newY = OUTER_BORDER_SIZE + j * BLOCK_SIZE
     if (item.visibility === "HIDDEN") {
         return;
     }
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = BORDER_COLOR;
     if (item.wallUp) {
-        ctx.fillRect(newX-SCALE, newY - HALF_LINE_SIZE, BLOCK_SIZE+2*SCALE, LINE_SIZE);
+        ctx.fillRect(newX - SCALE, newY - HALF_LINE_SIZE, BLOCK_SIZE + 2 * SCALE, LINE_SIZE);
     }
     if (item.wallDown) {
-        ctx.fillRect(newX-SCALE, newY + BLOCK_SIZE - LINE_SIZE + HALF_LINE_SIZE, BLOCK_SIZE+2*SCALE, LINE_SIZE);
+        ctx.fillRect(newX - SCALE, newY + BLOCK_SIZE - LINE_SIZE + HALF_LINE_SIZE, BLOCK_SIZE + 2 * SCALE, LINE_SIZE);
     }
     if (item.wallLeft) {
-        ctx.fillRect(newX - HALF_LINE_SIZE, newY-SCALE, LINE_SIZE, BLOCK_SIZE+2*SCALE);
+        ctx.fillRect(newX - HALF_LINE_SIZE, newY - SCALE, LINE_SIZE, BLOCK_SIZE + 2 * SCALE);
     }
     if (item.wallRight) {
-        ctx.fillRect(newX + BLOCK_SIZE - LINE_SIZE + HALF_LINE_SIZE, newY-SCALE, LINE_SIZE, BLOCK_SIZE+2*SCALE);
+        ctx.fillRect(newX + BLOCK_SIZE - LINE_SIZE + HALF_LINE_SIZE, newY - SCALE, LINE_SIZE, BLOCK_SIZE + 2 * SCALE);
     }
 }
 
@@ -84,7 +90,7 @@ function drawPlayer(userPos) {
     const newY = OUTER_BORDER_SIZE + userPos.x * BLOCK_SIZE + deltaPlus
     const newX = OUTER_BORDER_SIZE + userPos.y * BLOCK_SIZE + deltaPlus
 
-    ctx.fillStyle = "#ff7700";
+    ctx.fillStyle = PLAYER_COLOR;
     ctx.fillRect(newX, newY, PLAYER_SIZE, PLAYER_SIZE);
 }
 
@@ -152,9 +158,9 @@ async function getSessionGame() {
         headers: {'Content-Type': 'application/json'},
     });
     const body = await response.json();
-    canvas.height = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * body.map[0].length;
-    canvas.width = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * body.map.length;
-
+    canvas.width = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * body.map[0].length;
+    canvas.height = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * body.map.length;
+    document.getElementsByClassName("moves__count")[0].innerHTML = body.turns
     draw(body.map, {x: body.playerCoordinates.i, y: body.playerCoordinates.j})
 }
 
@@ -165,7 +171,7 @@ async function doTheMove(direction) {
     });
     const body = await response.json();
     draw(body.map, {x: body.playerCoordinates.i, y: body.playerCoordinates.j})
-
+    document.getElementsByClassName("moves__count")[0].innerHTML = body.turns
     if (body.finish) {
         alert("Молодец какой")
     }

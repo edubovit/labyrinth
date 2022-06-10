@@ -1,3 +1,16 @@
 body {
     /*overflow-y: hidden;*/
 }
+
+.moves {
+    display: flex;
+    font-size: 20px;
+}
+
+.moves .moves__count{
+    font-weight: bold;
+}
+
+.levels .level{
+    font-size:18px;
+}
