@@ -25,7 +25,8 @@ public class WebConfiguration implements WebMvcConfigurer {
         log.info("Allowed origins: {}", Arrays.toString(allowedOrigins));
         if (allowedOrigins != null && allowedOrigins.length > 0) {
             registry.addMapping("/**")
-                    .allowedOrigins(allowedOrigins);
+                    .allowedOrigins(allowedOrigins)
+                    .allowedMethods("*");
         }
     }
 
