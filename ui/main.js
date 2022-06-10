@@ -6,8 +6,8 @@ const HALF_LINE_SIZE = Math.floor(LINE_SIZE / 2)
 const OUTER_BORDER_SIZE = 3 * SCALE
 const PLAYER_SIZE = BLOCK_SIZE / 2
 
-const REVEALED_COLOR = "#fff2cc"
-const HIDDEN_COLOR = "#bbb"
+const REVEALED_COLOR = "#bbb"
+const HIDDEN_COLOR = "#fff2cc"
 const SEEN_COLOR = "#fff"
 const BORDER_COLOR = "#000"
 const PLAYER_COLOR = "#ff7700"
