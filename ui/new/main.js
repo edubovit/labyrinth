@@ -18,7 +18,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
 let sessionId = undefined
-
+let playerCoordinates = {'x': 0, 'y': 0}
 
 function draw(map, userPos) {
     // ctx.fillStyle = "#000";
@@ -92,48 +92,8 @@ function drawPlayer(userPos) {
 
     ctx.fillStyle = PLAYER_COLOR;
     ctx.fillRect(newX, newY, PLAYER_SIZE, PLAYER_SIZE);
-}
-
-window.onload = async () => {
-    sessionId = new URLSearchParams(location.search).get("sessionId");
-    if (!sessionId) {
-        await createGame()
-    } else {
-        await getSessionGame()
-    }
-
-    const levels = document.getElementsByClassName('level')
-    for (let i = 0; i < levels.length; i++) {
-        levels[i].onclick = async function (event) {
-            await createGame(event.target.dataset.value)
-        }
-    }
-}
-
-window.onkeydown = event => {
-    switch (event.code) {
-        case 'KeyW':
-        case 'ArrowUp':
-            doTheMove('up');
-            event.preventDefault()
-            break;
-        case 'KeyA':
-        case 'ArrowLeft':
-            doTheMove('left');
-            event.preventDefault()
-            break;
-        case 'KeyS':
-        case 'ArrowDown':
-            doTheMove('down');
-            event.preventDefault()
-            break;
-        case 'KeyD':
-        case 'ArrowRight':
-            doTheMove('right');
-            event.preventDefault()
-            break;
-        default:
-    }
+    playerCoordinates.x = newX
+    playerCoordinates.y = newY
 }
 
 
@@ -147,9 +107,7 @@ async function createGame(data) {
         body: data
     });
     const body = await response.json();
-    let url = new URL(location.href);
-    url.searchParams.set('sessionId', body.id);
-    location.href = url.href
+    setSessionId(body.id)
 }
 
 async function getSessionGame() {
@@ -178,7 +136,83 @@ async function doTheMove(direction) {
 }
 
 
-// function resize() {
-//     $("#canvas").outerHeight($(window).height() - $("#canvas").offset().top - Math.abs($("#canvas").outerHeight(true) - $("#canvas").outerHeight()));
-// }
-//
+window.onload = async () => {
+    setEvents()
+    await main()
+}
+
+async function main() {
+    if (!getSessionId()) {
+        await createGame()
+    } else {
+        await getSessionGame()
+    }
+
+}
+
+function getSessionId() {
+    return new URLSearchParams(location.search).get("sessionId")
+}
+
+function setSessionId(new_id) {
+    let url = new URL(location.href);
+    url.searchParams.set('sessionId', new_id);
+    location.href = url.href
+}
+
+function setEvents() {
+    // kb move
+    window.onkeydown = event => {
+        switch (event.code) {
+            case 'KeyW':
+            case 'ArrowUp':
+                doTheMove('up');
+                event.preventDefault()
+                break;
+            case 'KeyA':
+            case 'ArrowLeft':
+                doTheMove('left');
+                event.preventDefault()
+                break;
+            case 'KeyS':
+            case 'ArrowDown':
+                doTheMove('down');
+                event.preventDefault()
+                break;
+            case 'KeyD':
+            case 'ArrowRight':
+                doTheMove('right');
+                event.preventDefault()
+                break;
+            default:
+        }
+    }
+
+    // click move
+    canvas.onclick = async event => {
+        const offsetX = event.offsetX - playerCoordinates.x;
+        const offsetY = event.offsetY - playerCoordinates.y;
+        if (Math.abs(offsetY) > Math.abs(offsetX)) {
+            if (offsetY < 0) {
+                doTheMove('up');
+            } else {
+                doTheMove('down');
+            }
+        } else {
+            if (offsetX < 0) {
+                doTheMove('left');
+            } else {
+                doTheMove('right');
+            }
+        }
+    }
+
+    // level buttons click
+    const levels = document.getElementsByClassName('level')
+    for (let i = 0; i < levels.length; i++) {
+        levels[i].onclick = async function (event) {
+            await createGame(event.target.dataset.value)
+        }
+    }
+
+}
