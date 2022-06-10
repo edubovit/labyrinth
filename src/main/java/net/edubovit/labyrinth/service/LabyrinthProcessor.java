@@ -7,7 +7,6 @@ import net.edubovit.labyrinth.domain.Player;
 import net.edubovit.labyrinth.dto.GameSessionDTO;
 import net.edubovit.labyrinth.dto.LabyrinthDTO;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Function;
@@ -23,19 +22,16 @@ public class LabyrinthProcessor {
 
     private final Labyrinth labyrinth;
 
-    private final LabyrinthView view;
-
     private final Player player;
 
     private final int width;
 
     private final int height;
 
-    public LabyrinthProcessor(int width, int height, long seed, int cellSize, int cellBorder, int outerBorder) {
+    public LabyrinthProcessor(int width, int height, long seed) {
         this.width = width;
         this.height = height;
         labyrinth = new Labyrinth(width, height, seed);
-        view = new LabyrinthView(width, height, cellSize, cellBorder, outerBorder);
         player = new Player();
     }
 
@@ -43,16 +39,7 @@ public class LabyrinthProcessor {
         while (digOne());
         player.setPosition(labyrinth.getCell(width - 1, height - 1));
         player.setSeenTiles(seenTiles());
-        player.getSeenTiles().forEach(cell -> {
-            cell.setVisibility(SEEN);
-            view.drawCell(cell);
-        });
-        view.drawOuterBorders(labyrinth.getEnter(), labyrinth.getExit());
-        view.drawPlayer(player.getPosition());
-    }
-
-    public BufferedImage printMap() {
-        return view.getCanvas();
+        player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
     }
 
     public boolean moveUp() {
@@ -76,15 +63,7 @@ public class LabyrinthProcessor {
     }
 
     public GameSessionDTO.PlayerCoordinates playerCoordinates() {
-        int cellSize = view.getCellSize();
-        int i = player.getPosition().getI();
-        int j = player.getPosition().getJ();
-        int outerBorder = view.getOuterBorder();
-        return new GameSessionDTO.PlayerCoordinates(
-                outerBorder + j * cellSize + cellSize / 2,
-                outerBorder + i * cellSize + cellSize / 2,
-                i,
-                j);
+        return new GameSessionDTO.PlayerCoordinates(player.getPosition().getI(), player.getPosition().getJ());
     }
 
     public LabyrinthDTO getLabyrinthDTO() {
@@ -95,17 +74,10 @@ public class LabyrinthProcessor {
         if (direction.getWall().getState() == FINAL) {
             return false;
         } else {
-            player.getSeenTiles().forEach(cell -> {
-                cell.setVisibility(REVEALED);
-                view.drawCell(cell);
-            });
+            player.getSeenTiles().forEach(cell -> cell.setVisibility(REVEALED));
             player.setPosition(direction.getCell());
             player.setSeenTiles(seenTiles());
-            player.getSeenTiles().forEach(cell -> {
-                cell.setVisibility(SEEN);
-                view.drawCell(cell);
-            });
-            view.drawPlayer(player.getPosition());
+            player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
             return true;
         }
     }

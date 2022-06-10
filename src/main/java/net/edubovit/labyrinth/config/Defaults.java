@@ -8,12 +8,6 @@ public interface Defaults {
 
     int DEFAULT_HEIGHT = 20;
 
-    int DEFAULT_CELL_SIZE = 20;
-
-    int DEFAULT_CELL_BORDER = 1;
-
-    int DEFAULT_OUTER_BORDER = 6;
-
     int VIEW_DISTANCE = 4;
 
     int STORE_LAST_IMAGES = 50;

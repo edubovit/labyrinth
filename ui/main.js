@@ -12,8 +12,8 @@ const SEEN_COLOR = "#fff"
 const BORDER_COLOR = "#000"
 const PLAYER_COLOR = "#ff7700"
 
-// const API_HOST = 'http://localhost:8080';
-const API_HOST = 'https://labyrinth.edubovit.net/api'
+const API_HOST = 'http://localhost:8080';
+// const API_HOST = 'https://labyrinth.edubovit.net/api'
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
