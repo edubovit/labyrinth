@@ -3,6 +3,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const postcssPresetEnv = require('postcss-preset-env');
+const Dotenv = require('dotenv-webpack');
 
 const mode = process.env.NODE_ENV === 'production' ? 'production' : 'development'
 
@@ -57,6 +58,7 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: '[name]-[hash].css',
         }),
+        new Dotenv()
     ], // Создаем массив плагинов
     optimization: {
         minimize: true,
