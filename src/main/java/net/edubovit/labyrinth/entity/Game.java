@@ -1,4 +1,4 @@
-package net.edubovit.labyrinth.domain;
+package net.edubovit.labyrinth.entity;
 
 import net.edubovit.labyrinth.service.LabyrinthProcessor;
 
@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class GameSession implements Identifiable<UUID> {
+public class Game {
 
     private UUID id;
 

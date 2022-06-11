@@ -26,7 +26,7 @@ public class WebConfiguration implements WebMvcConfigurer {
         if (allowedOrigins != null && allowedOrigins.length > 0) {
             registry.addMapping("/**")
                     .allowedOrigins(allowedOrigins)
-                    .allowedMethods("*");
+                    .allowCredentials(true);
         }
     }
 

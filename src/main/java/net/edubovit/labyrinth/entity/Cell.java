@@ -1,4 +1,4 @@
-package net.edubovit.labyrinth.domain;
+package net.edubovit.labyrinth.entity;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

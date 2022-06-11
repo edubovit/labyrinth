@@ -1,4 +1,4 @@
-package net.edubovit.labyrinth.domain;
+package net.edubovit.labyrinth.entity;
 
 import lombok.Getter;
 
@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 
-import static net.edubovit.labyrinth.domain.Wall.State.ABSENT;
-import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
-import static net.edubovit.labyrinth.domain.Wall.State.PLAN;
+import static net.edubovit.labyrinth.entity.Wall.State.ABSENT;
+import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
+import static net.edubovit.labyrinth.entity.Wall.State.PLAN;
 
 public class Labyrinth {
 

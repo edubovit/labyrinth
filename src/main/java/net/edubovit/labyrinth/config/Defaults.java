@@ -10,10 +10,6 @@ public interface Defaults {
 
     int VIEW_DISTANCE = 4;
 
-    int STORE_LAST_IMAGES = 50;
-
-    int IMAGES_CLEANUP_THRESHOLD = 1000;
-
     int SESSIONS_CLEANUP_THRESHOLD = 100;
 
     Duration SESSION_STORAGE_TIME = Duration.ofDays(1);

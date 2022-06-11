@@ -1,10 +1,10 @@
-package net.edubovit.labyrinth.repository;
+package net.edubovit.labyrinth.repository.memory;
 
 import net.edubovit.labyrinth.config.Defaults;
-import net.edubovit.labyrinth.domain.GameSession;
+import net.edubovit.labyrinth.entity.Game;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -13,14 +13,14 @@ import static net.edubovit.labyrinth.config.Defaults.SESSION_STORAGE_TIME;
 import static net.edubovit.labyrinth.config.Defaults.STALE_SESSION_STORAGE_TIME;
 import static net.edubovit.labyrinth.config.Defaults.STALE_SESSION_TURNS;
 
-@Repository
+@Component
 @Slf4j
-public class SessionRepository extends KeyValueInMemoryRepository<UUID, GameSession> {
+public class GameCache extends KeyValueInMemoryRepository<UUID, Game> {
 
     private int cleanupCounter = 0;
 
     @Override
-    public void save(UUID key, GameSession value) {
+    public void save(UUID key, Game value) {
         super.save(key, value);
         cleanupCounter = (cleanupCounter + 1) % Defaults.SESSIONS_CLEANUP_THRESHOLD;
         if (cleanupCounter == 0 && storageMap.size() >= Defaults.SESSIONS_CLEANUP_THRESHOLD) {
@@ -42,7 +42,7 @@ public class SessionRepository extends KeyValueInMemoryRepository<UUID, GameSess
         log.info("Sessions survived: {}", storageMap.size());
     }
 
-    private record StoredSession(UUID id, GameSession session) {
+    private record StoredSession(UUID id, Game session) {
     }
 
 }

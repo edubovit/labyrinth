@@ -1,5 +1,6 @@
 package net.edubovit.labyrinth.web;
 
+import net.edubovit.labyrinth.config.URIPaths;
 import net.edubovit.labyrinth.dto.LabyrinthDTO;
 import net.edubovit.labyrinth.service.LabyrinthService;
 
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("labyrinth")
+@RequestMapping(URIPaths.ROOT_LABYRINTH)
 @RequiredArgsConstructor
 public class LabyrinthController {
 

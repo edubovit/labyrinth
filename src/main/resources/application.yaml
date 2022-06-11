@@ -1,5 +1,6 @@
 labyrinth:
   allowed-origins:
+    - http://localhost:8081
     - http://localhost:63342
     - http://192.168.1.10:8001
     - http://192.168.1.10:8081
@@ -7,3 +8,12 @@ labyrinth:
 server:
   compression:
     enabled: true
+  servlet:
+    session:
+      timeout: ${SESSION_TIMEOUT:30d}
+
+spring:
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/postgres}
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
