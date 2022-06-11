@@ -187,22 +187,23 @@ function setEvents() {
             default:
         }
     }
-
-    // click move
-    canvas.onclick = async event => {
-        const offsetX = event.offsetX - playerCoordinates.x;
-        const offsetY = event.offsetY - playerCoordinates.y;
-        if (Math.abs(offsetY) > Math.abs(offsetX)) {
-            if (offsetY < 0) {
-                doTheMove('up');
+    if(detectMobile()) {
+        // click move
+        canvas.onclick = async event => {
+            const offsetX = event.offsetX - playerCoordinates.x;
+            const offsetY = event.offsetY - playerCoordinates.y;
+            if (Math.abs(offsetY) > Math.abs(offsetX)) {
+                if (offsetY < 0) {
+                    doTheMove('up');
+                } else {
+                    doTheMove('down');
+                }
             } else {
-                doTheMove('down');
-            }
-        } else {
-            if (offsetX < 0) {
-                doTheMove('left');
-            } else {
-                doTheMove('right');
+                if (offsetX < 0) {
+                    doTheMove('left');
+                } else {
+                    doTheMove('right');
+                }
             }
         }
     }
@@ -215,4 +216,20 @@ function setEvents() {
         }
     }
 
+}
+
+function detectMobile() {
+    const toMatch = [
+        /Android/i,
+        /webOS/i,
+        /iPhone/i,
+        /iPad/i,
+        /iPod/i,
+        /BlackBerry/i,
+        /Windows Phone/i
+    ];
+
+    return toMatch.some((toMatchItem) => {
+        return navigator.userAgent.match(toMatchItem);
+    });
 }
