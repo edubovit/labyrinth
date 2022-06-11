@@ -1,3 +1,6 @@
+import './styles/main.scss';
+
+
 const SCALE = 1// step 0.5
 
 const BLOCK_SIZE = 40 * SCALE
@@ -12,7 +15,8 @@ const SEEN_COLOR = "#fff"
 const BORDER_COLOR = "#000"
 const PLAYER_COLOR = "#ff7700"
 
-const API_HOST = 'http://localhost:8080';
+// ToDo: env
+const API_HOST = 'http://192.168.1.10:8080';
 // const API_HOST = 'https://labyrinth.edubovit.net/api'
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -138,10 +142,10 @@ async function doTheMove(direction) {
 
 window.onload = async () => {
     await setEvents()
-    await main()
+    await index()
 }
 
-async function main() {
+async function index() {
     sessionId = getSessionId()
     if (!sessionId) {
         await createGame()
