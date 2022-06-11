@@ -4,18 +4,37 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const postcssPresetEnv = require('postcss-preset-env');
 const Dotenv = require('dotenv-webpack');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
-const mode = process.env.NODE_ENV === 'production' ? 'production' : 'development'
+const PRODUCTION = "production"
+const DEVELOPMENT = "development"
+const mode = process.env.NODE_ENV === PRODUCTION ? PRODUCTION : DEVELOPMENT
+
+
+let plugins = [
+    new HtmlWebpackPlugin({
+        template: './src/index.html',
+    }),
+    new MiniCssExtractPlugin({
+        filename: '[name]-[hash].css',
+    }),
+    new Dotenv()
+]
+let babel_plugins = []
+if (mode === DEVELOPMENT) {
+    plugins.push(new ReactRefreshWebpackPlugin());
+    babel_plugins.push('react-refresh/babel');
+}
+
 
 module.exports = {
     entry: './src/index.js',
     module: {
         rules: [
             {
-                test: /\.(s[ac]|c)ss$/i, // /\.(le|c)ss$/i если вы используете less
+                test: /\.(s[ac]|c)ss$/i,
                 use: [
                     MiniCssExtractPlugin.loader,
-                    // 'style-loader',
                     'css-loader',
                     {
                         loader: 'postcss-loader',
@@ -29,18 +48,19 @@ module.exports = {
                 ],
             },
             {
-                test: /\.js$/,
+                test: /\.jsx?$/,
                 exclude: /node_modules/,
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ['@babel/preset-env'],
+                        presets: ['@babel/preset-env', '@babel/preset-react'],
+                        plugins: babel_plugins,
                         cacheDirectory: true,
                     },
                 },
             },
             {test: /\.(html)$/, use: ['html-loader']},
-            {test: /\.(png|jpe?g|gif|svg|webp|ico)$/i, type: mode === 'production' ? 'asset' : 'asset/resource',},
+            {test: /\.(png|jpe?g|gif|svg|webp|ico)$/i, type: mode === PRODUCTION ? 'asset' : 'asset/resource'},
             {test: /\.(woff2?|eot|ttf|otf)$/i, type: 'asset/resource',},
         ]
     },
@@ -51,15 +71,7 @@ module.exports = {
 
         clean: true,
     },
-    plugins: [
-        new HtmlWebpackPlugin({
-            template: './src/index.html',
-        }),
-        new MiniCssExtractPlugin({
-            filename: '[name]-[hash].css',
-        }),
-        new Dotenv()
-    ], // Создаем массив плагинов
+    plugins: plugins,
     optimization: {
         minimize: true,
         minimizer: [
@@ -76,7 +88,7 @@ module.exports = {
     },
     mode: mode,
 
-    devtool: mode === 'development' ? 'source-map' : undefined,
+    devtool: mode === DEVELOPMENT ? 'source-map' : undefined,
     devServer: {
         hot: true,
     }
