@@ -46,7 +46,7 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         assetModuleFilename: 'assets/[hash][ext][query]',
-        filename: 'bundle.js',
+        filename: 'bundle-[hash].js',
 
         clean: true,
     },
@@ -55,7 +55,7 @@ module.exports = {
             template: './src/index.html',
         }),
         new MiniCssExtractPlugin({
-            filename: '[name].[contenthash].css',
+            filename: '[name]-[hash].css',
         }),
     ], // Создаем массив плагинов
     optimization: {
@@ -74,7 +74,7 @@ module.exports = {
     },
     mode: mode,
 
-    devtool: 'source-map',
+    devtool: mode === 'development' ? 'source-map' : undefined,
     devServer: {
         hot: true,
     }
