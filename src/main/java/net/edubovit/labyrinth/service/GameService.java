@@ -4,6 +4,7 @@ import net.edubovit.labyrinth.config.properties.ApplicationProperties;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
 import net.edubovit.labyrinth.dto.GameDTO;
 import net.edubovit.labyrinth.entity.Game;
+import net.edubovit.labyrinth.entity.LabyrinthProcessor;
 import net.edubovit.labyrinth.exception.NotFoundException;
 import net.edubovit.labyrinth.repository.cached.GameCachedRepository;
 import net.edubovit.labyrinth.repository.cached.UserGameCachedRepository;

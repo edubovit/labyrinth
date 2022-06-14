@@ -1,4 +1,4 @@
-package net.edubovit.labyrinth.service;
+package net.edubovit.labyrinth.entity;
 
 import net.edubovit.labyrinth.entity.Cell;
 import net.edubovit.labyrinth.entity.Direction;
@@ -7,6 +7,9 @@ import net.edubovit.labyrinth.entity.Player;
 import net.edubovit.labyrinth.dto.GameDTO;
 import net.edubovit.labyrinth.dto.LabyrinthDTO;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -110,6 +113,12 @@ public class LabyrinthProcessor implements Serializable {
                     .forEach(result::add);
         }
         return result;
+    }
+
+    @Serial
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        player.postDeserialize(labyrinth.getMatrix());
     }
 
 }

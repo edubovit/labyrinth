@@ -1,7 +1,13 @@
 package net.edubovit.labyrinth.entity;
 
+import net.edubovit.labyrinth.util.ReflectionUtils;
+
 import lombok.Getter;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +40,15 @@ public class Labyrinth implements Serializable {
         random = new Random(seed);
         availableDigDirections = new ArrayList<>();
         availableDigDirections.add(new Way(matrix[height - 1][width - 1], DigDirection.UP));
+    }
+
+    private Labyrinth(int width, int height) {
+        this.width = width;
+        this.height = height;
+        matrix = new Cell[height][width];
+        initializeField();
+        random = null;
+        availableDigDirections = null;
     }
 
     public Cell getCell(int x, int y) {
@@ -170,6 +185,33 @@ public class Labyrinth implements Serializable {
 
     private DigDirection chooseRandomDirection(DigDirection previousDirection) {
         return previousDirection.nextPossibleDirections()[random.nextInt(3)];
+    }
+
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(width);
+        out.writeInt(height);
+        for (var row : matrix) {
+            for (var cell : row) {
+                out.writeByte(cell.tyByteState());
+            }
+        }
+    }
+
+    @Serial
+    private void readObject(ObjectInputStream in) throws IOException, NoSuchFieldException, IllegalAccessException {
+        int width = in.readInt();
+        int height = in.readInt();
+        var replacement = new Labyrinth(width, height);
+        replacement.initializeField();
+        ReflectionUtils.setInt("width", this, width);
+        ReflectionUtils.setInt("height", this, height);
+        for (int i = 0; i < replacement.matrix.length; i++) {
+            for (int j = 0; j < replacement.matrix[i].length; j++) {
+                replacement.matrix[i][j].loadByteState(in.readByte());
+            }
+        }
+        ReflectionUtils.setObject("matrix", this, replacement.matrix);
     }
 
     private record Way(Cell next, DigDirection to) {

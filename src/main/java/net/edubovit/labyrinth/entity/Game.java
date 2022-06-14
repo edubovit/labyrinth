@@ -1,7 +1,5 @@
 package net.edubovit.labyrinth.entity;
 
-import net.edubovit.labyrinth.service.LabyrinthProcessor;
-
 import lombok.Builder;
 import lombok.Data;
 

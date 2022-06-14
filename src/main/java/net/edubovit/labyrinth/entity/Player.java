@@ -12,4 +12,11 @@ public class Player implements Serializable {
 
     private Collection<Cell> seenTiles;
 
+    void postDeserialize(Cell[][] matrix) {
+        position = matrix[position.getI()][position.getJ()];
+        seenTiles = seenTiles.stream()
+                .map(tile -> matrix[tile.getI()][tile.getJ()])
+                .toList();
+    }
+
 }
