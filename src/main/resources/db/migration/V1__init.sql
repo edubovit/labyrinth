@@ -4,3 +4,8 @@ CREATE TABLE "user" (
     password  TEXT         NOT NULL,
     game_id   UUID
 );
+
+CREATE TABLE game (
+    id         UUID   PRIMARY KEY DEFAULT gen_random_uuid(),
+    game_blob  bytea  NOT NULL
+);

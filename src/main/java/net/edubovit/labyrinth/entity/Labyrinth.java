@@ -2,6 +2,7 @@ package net.edubovit.labyrinth.entity;
 
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,7 +12,7 @@ import static net.edubovit.labyrinth.entity.Wall.State.ABSENT;
 import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
 import static net.edubovit.labyrinth.entity.Wall.State.PLAN;
 
-public class Labyrinth {
+public class Labyrinth implements Serializable {
 
     @Getter
     private final Cell[][] matrix;
@@ -30,7 +31,7 @@ public class Labyrinth {
 
     private final Random random;
 
-    private final List<Way> availableDigDirections;
+    private final transient List<Way> availableDigDirections;
 
     public Labyrinth(int width, int height, long seed) {
         this.width = width;

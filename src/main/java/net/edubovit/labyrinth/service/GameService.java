@@ -1,9 +1,11 @@
 package net.edubovit.labyrinth.service;
 
+import net.edubovit.labyrinth.config.properties.ApplicationProperties;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
 import net.edubovit.labyrinth.dto.GameDTO;
 import net.edubovit.labyrinth.entity.Game;
 import net.edubovit.labyrinth.exception.NotFoundException;
+import net.edubovit.labyrinth.repository.cached.GameCachedRepository;
 import net.edubovit.labyrinth.repository.cached.UserGameCachedRepository;
 import net.edubovit.labyrinth.repository.db.UserRepository;
 import net.edubovit.labyrinth.repository.memory.GameCache;
@@ -23,11 +25,15 @@ import java.util.function.Function;
 @Slf4j
 public class GameService {
 
+    private final GameCachedRepository gameCachedRepository;
+
     private final GameCache gameCache;
 
     private final UserRepository userRepository;
 
     private final UserGameCachedRepository userGameCachedRepository;
+
+    private final ApplicationProperties properties;
 
     @Transactional
     public GameDTO create(CreateGameRequestDTO request) {
@@ -40,7 +46,7 @@ public class GameService {
                 .lastUsed(LocalDateTime.now())
                 .build();
         var username = SessionUtils.getUsername();
-        userGameCachedRepository.flushUser(username);
+        userGameCachedRepository.deleteUserGame(username);
         gameCache.save(game.getId(), game);
         userRepository.updateGameForUser(game.getId(), username);
         var response = new GameDTO(
@@ -99,6 +105,9 @@ public class GameService {
         game.setTurns(game.getTurns() + 1);
         game.setLastUsed(LocalDateTime.now());
         var processor = game.getProcessor();
+        if (game.getTurns() % properties.getGameFlushPeriod() == 0) {
+            gameCachedRepository.flush(game);
+        }
         boolean successMove = direction.action.apply(processor);
         var response = new GameDTO(game.getId(), processor.getLabyrinthDTO(), processor.playerCoordinates(),
                 game.getTurns(), processor.finish(), successMove);

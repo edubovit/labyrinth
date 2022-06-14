@@ -2,10 +2,11 @@ package net.edubovit.labyrinth.entity;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 @Data
-public class Player {
+public class Player implements Serializable {
 
     private Cell position;
 

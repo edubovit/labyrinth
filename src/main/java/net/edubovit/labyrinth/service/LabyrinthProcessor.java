@@ -7,6 +7,7 @@ import net.edubovit.labyrinth.entity.Player;
 import net.edubovit.labyrinth.dto.GameDTO;
 import net.edubovit.labyrinth.dto.LabyrinthDTO;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Function;
@@ -18,7 +19,7 @@ import static net.edubovit.labyrinth.entity.Visibility.SEEN;
 import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
 import static java.util.Collections.singletonList;
 
-public class LabyrinthProcessor {
+public class LabyrinthProcessor implements Serializable {
 
     private final Labyrinth labyrinth;
 

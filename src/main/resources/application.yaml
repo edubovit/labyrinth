@@ -4,6 +4,7 @@ labyrinth:
     - http://localhost:63342
     - http://192.168.1.10:8001
     - http://192.168.1.10:8081
+  game-flush-period: ${GAME_FLUSH_PERIOD:100}
 
 server:
   compression:

@@ -2,7 +2,6 @@ package net.edubovit.labyrinth.repository.cached;
 
 import net.edubovit.labyrinth.entity.Game;
 import net.edubovit.labyrinth.repository.db.UserRepository;
-import net.edubovit.labyrinth.repository.memory.GameCache;
 import net.edubovit.labyrinth.repository.memory.UserGameCache;
 
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,7 @@ public class UserGameCachedRepository {
 
     private final UserRepository userRepository;
 
-    private final GameCache gameCache;
+    private final GameCachedRepository gameCachedRepository;
 
     private final UserGameCache userGameCache;
 
@@ -28,15 +27,19 @@ public class UserGameCachedRepository {
             return cachedGame;
         } else {
             var gameOptional = userRepository.selectGameIdByUsername(username)
-                    .map(gameCache::get)
+                    .map(gameCachedRepository::get)
                     .flatMap(identity());
             gameOptional.ifPresent(game -> userGameCache.save(username, game));
             return gameOptional;
         }
     }
 
-    public void flushUser(String username) {
-        userGameCache.delete(username);
+    public void deleteUserGame(String username) {
+        userGameCache.get(username)
+                .ifPresent(game -> {
+                    gameCachedRepository.deleteByGameId(game.getId());
+                    userGameCache.delete(username);
+                });
     }
 
 }
