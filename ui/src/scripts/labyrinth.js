@@ -16,7 +16,8 @@ const API_HOST = process.env.API_HOST;
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
-let sessionId = undefined
+let currentPage = 'login';
+
 let playerCoordinates = {'x': 0, 'y': 0}
 
 function draw(map, userPos) {
@@ -102,28 +103,36 @@ async function createGame(data) {
     }
     const response = await fetch(`${API_HOST}/game/create/`, {
         method: 'POST',
+        credentials: "include",
         headers: {'Content-Type': 'application/json'},
         body: data
     });
-    const body = await response.json();
-    setSessionId(body.id)
+    renderGame(await response.json());
 }
 
 async function getSessionGame() {
-    const response = await fetch(`${API_HOST}/game/${sessionId}/`, {
+    const response = await fetch(`${API_HOST}/game/`, {
         method: 'GET',
-        headers: {'Content-Type': 'application/json'},
+        credentials: "include",
     });
-    const body = await response.json();
-    canvas.width = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * body.map[0].length;
-    canvas.height = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * body.map.length;
-    document.getElementsByClassName("moves__count")[0].innerHTML = body.turns
-    draw(body.map, {x: body.playerCoordinates.i, y: body.playerCoordinates.j})
+    if (!response.ok) {
+        return false;
+    }
+    renderGame(await response.json());
+    return true;
+}
+
+function renderGame(game) {
+    canvas.width = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map[0].length;
+    canvas.height = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map.length;
+    document.getElementsByClassName("moves__count")[0].innerHTML = game.turns;
+    draw(game.map, {x: game.playerCoordinates.i, y: game.playerCoordinates.j});
 }
 
 async function doTheMove(direction) {
-    const response = await fetch(`${API_HOST}/game/${sessionId}/${direction}/`, {
+    const response = await fetch(`${API_HOST}/game/${direction}/`, {
         method: 'POST',
+        credentials: "include",
         headers: {'Content-Type': 'application/json'},
     });
     const body = await response.json();
@@ -141,28 +150,17 @@ window.onload = async () => {
 }
 
 async function index() {
-    sessionId = getSessionId()
-    if (!sessionId) {
-        await createGame()
-    } else {
-        await getSessionGame()
+    if (await checkSession()) {
+        await loadGame();
     }
-
-}
-
-function getSessionId() {
-    return new URLSearchParams(location.search).get("sessionId")
-}
-
-function setSessionId(new_id) {
-    let url = new URL(location.href);
-    url.searchParams.set('sessionId', new_id);
-    location.href = url.href
 }
 
 function setEvents() {
     // kb move
     window.onkeydown = event => {
+        if (currentPage !== 'game') {
+            return;
+        }
         switch (event.code) {
             case 'KeyW':
             case 'ArrowUp':
@@ -216,6 +214,68 @@ function setEvents() {
         }
     }
 
+    document.getElementById('login-button').onclick = authenticate('login', 'Login failed');
+    document.getElementById('signup-button').onclick = authenticate('signup', 'Registration failed');
+    document.getElementById('logout-button').onclick = async event => {
+        const response = await fetch(`${API_HOST}/user/logout`, {
+            method: "POST",
+            credentials: "include"
+        });
+        if (response.ok) {
+            showPageLogin();
+        }
+    }
+}
+
+async function loadGame() {
+    if (!await getSessionGame()) {
+        await createGame();
+    }
+}
+
+async function checkSession() {
+    const response = await fetch(`${API_HOST}/user/me`, {
+        method: "GET",
+        credentials: "include"
+    });
+    if (response.ok) {
+        showPageGame();
+    } else {
+        showPageLogin();
+    }
+    return response.ok;
+}
+
+function authenticate(path, errorMessage) {
+    return async () => {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const response = await fetch(`${API_HOST}/user/${path}`, {
+            method: "POST",
+            credentials: "include",
+            headers: {'Content-Type': 'application/json'},
+            body: `{"username":"${username}","password":"${password}"}`,
+        });
+        if (response.ok) {
+            await loadGame();
+            showPageGame();
+        } else {
+            document.getElementById('login-message').innerText = errorMessage;
+        }
+    }
+}
+
+function showPageLogin() {
+    currentPage = 'login';
+    document.getElementById('page-login').style.display = 'block';
+    document.getElementById('page-game').style.display = 'none';
+}
+
+function showPageGame() {
+    currentPage = 'game';
+    document.getElementById('login-message').innerText = '';
+    document.getElementById('page-login').style.display = 'none';
+    document.getElementById('page-game').style.display = 'block';
 }
 
 function detectMobile() {

@@ -6,22 +6,40 @@
     <title>Labyrinth</title>
 </head>
 <body>
-<div id="labyrinth">
-    <canvas id="canvas" width="1500px" height="800px"></canvas>
-</div>
-<div class="statistics">
-    <div class="moves">
-        <div class="moves__text">Turns:</div>
-        <div class="moves__count"></div>
+<div id="page-login">
+    <div>
+        <input id="username" type="text">
     </div>
+    <div>
+        <input id="password" type="password">
+    </div>
+    <div>
+        <input id="signup-button" type="button" value="Sign up">
+        <input id="login-button" type="button" value="Sign in">
+    </div>
+    <div id="login-message"></div>
 </div>
-<div class="levels">
-    <input class="level" type="button" value="lol" data-value='{"width":3,"height":3}'>
-    <input class="level" type="button" value="easy" data-value='{"width":10,"height":10}'>
-    <input class="level" type="button" value="medium" data-value='{"width":20,"height":20}'>
-    <input class="level" type="button" value="hard" data-value='{"width":80,"height":50}'>
-    <input class="level" type="button" value="brutal" data-value='{"width":120,"height":80}'>
-    <input class="level" type="button" value="cave" data-value='{"width":10,"height":200}'>
+<div id="page-game">
+    <div id="labyrinth">
+        <canvas id="canvas" width="1500px" height="800px"></canvas>
+    </div>
+    <div class="statistics">
+        <div class="moves">
+            <div class="moves__text">Turns:</div>
+            <div class="moves__count"></div>
+        </div>
+    </div>
+    <div class="levels">
+        <input class="level" type="button" value="lol" data-value='{"width":3,"height":3}'>
+        <input class="level" type="button" value="easy" data-value='{"width":10,"height":10}'>
+        <input class="level" type="button" value="medium" data-value='{"width":20,"height":20}'>
+        <input class="level" type="button" value="hard" data-value='{"width":80,"height":50}'>
+        <input class="level" type="button" value="brutal" data-value='{"width":120,"height":80}'>
+        <input class="level" type="button" value="cave" data-value='{"width":10,"height":200}'>
+    </div>
+    <div>
+        <input id="logout-button" type="button" value="Logout">
+    </div>
 </div>
 <footer>
 
