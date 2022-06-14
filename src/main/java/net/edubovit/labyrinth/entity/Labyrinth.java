@@ -6,7 +6,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Consumer;
 
 import static net.edubovit.labyrinth.entity.Wall.State.ABSENT;
 import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
@@ -23,13 +22,7 @@ public class Labyrinth implements Serializable {
     @Getter
     private final int height;
 
-    @Getter
-    private final HorizontalWall enter;
-
-    @Getter
-    private final HorizontalWall exit;
-
-    private final Random random;
+    private final transient Random random;
 
     private final transient List<Way> availableDigDirections;
 
@@ -37,6 +30,21 @@ public class Labyrinth implements Serializable {
         this.width = width;
         this.height = height;
         matrix = new Cell[height][width];
+        initializeField();
+        random = new Random(seed);
+        availableDigDirections = new ArrayList<>();
+        availableDigDirections.add(new Way(matrix[height - 1][width - 1], DigDirection.UP));
+    }
+
+    public Cell getCell(int x, int y) {
+        return matrix[y][x];
+    }
+
+    public void generateWalls() {
+        while (digTunnel());
+    }
+
+    private void initializeField() {
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 matrix[i][j] = new Cell(i, j);
@@ -75,33 +83,29 @@ public class Labyrinth implements Serializable {
                 }
             }
         }
-        enter = matrix[height - 1][width - 1].getDown().getWall();
-        exit = matrix[0][0].getUp().getWall();
-        random = new Random(seed);
-        availableDigDirections = new ArrayList<>();
-        availableDigDirections.add(new Way(matrix[height - 1][width - 1], DigDirection.UP));
     }
 
-    public void digTunnel(Way way, Consumer<Cell> cellDiggedListener) {
-        var cell = way.next;
-        var direction = way.to;
-        do {
-            dig(cell, direction);
-            cellDiggedListener.accept(cell);
-            direction = chooseRandomDirection(direction);
-            cell = direction.getCell(cell);
-        } while (cell != null);
+    private boolean digTunnel() {
+        var chosenWay = chooseRandomWay();
+        if (chosenWay == null) {
+            return false;
+        } else {
+            var cell = chosenWay.next;
+            var direction = chosenWay.to;
+            do {
+                dig(cell, direction);
+                direction = chooseRandomDirection(direction);
+                cell = direction.getCell(cell);
+            } while (cell != null);
+            return true;
+        }
     }
 
-    public Way chooseRandomWay() {
+    private Way chooseRandomWay() {
         if (availableDigDirections.isEmpty()) {
             return null;
         }
         return availableDigDirections.get(random.nextInt(availableDigDirections.size()));
-    }
-
-    public Cell getCell(int x, int y) {
-        return matrix[y][x];
     }
 
     private void dig(Cell cell, DigDirection to) {
@@ -168,10 +172,10 @@ public class Labyrinth implements Serializable {
         return previousDirection.nextPossibleDirections()[random.nextInt(3)];
     }
 
-    public record Way(Cell next, DigDirection to) {
+    private record Way(Cell next, DigDirection to) {
     }
 
-    public enum DigDirection {
+    private enum DigDirection {
         UP, LEFT, RIGHT, DOWN;
 
         private static final DigDirection[] nextPossibleDirectionsUp = new DigDirection[] { LEFT, UP, RIGHT };

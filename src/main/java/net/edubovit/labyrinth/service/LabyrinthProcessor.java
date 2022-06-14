@@ -37,7 +37,7 @@ public class LabyrinthProcessor implements Serializable {
     }
 
     public void generate() {
-        while (digOne());
+        labyrinth.generateWalls();
         player.setPosition(labyrinth.getCell(width - 1, height - 1));
         player.setSeenTiles(seenTiles());
         player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
@@ -60,7 +60,7 @@ public class LabyrinthProcessor implements Serializable {
     }
 
     public boolean finish() {
-        return player.getPosition().getUp().getWall() == labyrinth.getExit();
+        return player.getPosition().getI() == 0 && player.getPosition().getJ() == 0;
     }
 
     public GameDTO.PlayerCoordinates playerCoordinates() {
@@ -79,16 +79,6 @@ public class LabyrinthProcessor implements Serializable {
             player.setPosition(direction.getCell());
             player.setSeenTiles(seenTiles());
             player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
-            return true;
-        }
-    }
-
-    private boolean digOne() {
-        var chosenWay = labyrinth.chooseRandomWay();
-        if (chosenWay == null) {
-            return false;
-        } else {
-            labyrinth.digTunnel(chosenWay, cell -> {});
             return true;
         }
     }
