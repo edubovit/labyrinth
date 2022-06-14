@@ -1,24 +1,28 @@
-package net.edubovit.labyrinth.service;
+package net.edubovit.labyrinth.entity;
 
-import net.edubovit.labyrinth.domain.Cell;
-import net.edubovit.labyrinth.domain.Direction;
-import net.edubovit.labyrinth.domain.Labyrinth;
-import net.edubovit.labyrinth.domain.Player;
-import net.edubovit.labyrinth.dto.GameSessionDTO;
+import net.edubovit.labyrinth.entity.Cell;
+import net.edubovit.labyrinth.entity.Direction;
+import net.edubovit.labyrinth.entity.Labyrinth;
+import net.edubovit.labyrinth.entity.Player;
+import net.edubovit.labyrinth.dto.GameDTO;
 import net.edubovit.labyrinth.dto.LabyrinthDTO;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static net.edubovit.labyrinth.config.Defaults.VIEW_DISTANCE;
-import static net.edubovit.labyrinth.domain.Visibility.REVEALED;
-import static net.edubovit.labyrinth.domain.Visibility.SEEN;
-import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
+import static net.edubovit.labyrinth.entity.Visibility.REVEALED;
+import static net.edubovit.labyrinth.entity.Visibility.SEEN;
+import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
 import static java.util.Collections.singletonList;
 
-public class LabyrinthProcessor {
+public class LabyrinthProcessor implements Serializable {
 
     private final Labyrinth labyrinth;
 
@@ -36,7 +40,7 @@ public class LabyrinthProcessor {
     }
 
     public void generate() {
-        while (digOne());
+        labyrinth.generateWalls();
         player.setPosition(labyrinth.getCell(width - 1, height - 1));
         player.setSeenTiles(seenTiles());
         player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
@@ -59,11 +63,11 @@ public class LabyrinthProcessor {
     }
 
     public boolean finish() {
-        return player.getPosition().getUp().getWall() == labyrinth.getExit();
+        return player.getPosition().getI() == 0 && player.getPosition().getJ() == 0;
     }
 
-    public GameSessionDTO.PlayerCoordinates playerCoordinates() {
-        return new GameSessionDTO.PlayerCoordinates(player.getPosition().getI(), player.getPosition().getJ());
+    public GameDTO.PlayerCoordinates playerCoordinates() {
+        return new GameDTO.PlayerCoordinates(player.getPosition().getI(), player.getPosition().getJ());
     }
 
     public LabyrinthDTO getLabyrinthDTO() {
@@ -78,16 +82,6 @@ public class LabyrinthProcessor {
             player.setPosition(direction.getCell());
             player.setSeenTiles(seenTiles());
             player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
-            return true;
-        }
-    }
-
-    private boolean digOne() {
-        var chosenWay = labyrinth.chooseRandomWay();
-        if (chosenWay == null) {
-            return false;
-        } else {
-            labyrinth.digTunnel(chosenWay, cell -> {});
             return true;
         }
     }
@@ -119,6 +113,12 @@ public class LabyrinthProcessor {
                     .forEach(result::add);
         }
         return result;
+    }
+
+    @Serial
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        player.postDeserialize(labyrinth.getMatrix());
     }
 
 }

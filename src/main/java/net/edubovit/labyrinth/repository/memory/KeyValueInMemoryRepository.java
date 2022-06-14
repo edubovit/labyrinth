@@ -1,12 +1,12 @@
-package net.edubovit.labyrinth.repository;
+package net.edubovit.labyrinth.repository.memory;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 class KeyValueInMemoryRepository<K, V> {
 
-    protected final Map<K, V> storageMap = new HashMap<>();
+    protected final Map<K, V> storageMap = new ConcurrentHashMap<>();
 
     public Optional<V> get(K key) {
         return Optional.ofNullable(storageMap.get(key));

@@ -1,14 +1,21 @@
 package net.edubovit.labyrinth.service;
 
-import net.edubovit.labyrinth.domain.GameSession;
+import net.edubovit.labyrinth.config.properties.ApplicationProperties;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
-import net.edubovit.labyrinth.dto.GameSessionDTO;
+import net.edubovit.labyrinth.dto.GameDTO;
+import net.edubovit.labyrinth.entity.Game;
+import net.edubovit.labyrinth.entity.LabyrinthProcessor;
 import net.edubovit.labyrinth.exception.NotFoundException;
-import net.edubovit.labyrinth.repository.SessionRepository;
+import net.edubovit.labyrinth.repository.cached.GameCachedRepository;
+import net.edubovit.labyrinth.repository.cached.UserGameCachedRepository;
+import net.edubovit.labyrinth.repository.db.UserRepository;
+import net.edubovit.labyrinth.repository.memory.GameCache;
+import net.edubovit.labyrinth.util.SessionUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,78 +26,104 @@ import java.util.function.Function;
 @Slf4j
 public class GameService {
 
-    private final SessionRepository sessionRepository;
+    private final GameCachedRepository gameCachedRepository;
 
-    public GameSessionDTO create(CreateGameRequestDTO request) {
+    private final GameCache gameCache;
+
+    private final UserRepository userRepository;
+
+    private final UserGameCachedRepository userGameCachedRepository;
+
+    private final ApplicationProperties properties;
+
+    @Transactional
+    public GameDTO create(CreateGameRequestDTO request) {
         log.info("creating game: {}", request.toString());
         var processor = new LabyrinthProcessor(request.width(), request.height(), request.seed());
         processor.generate();
-        var session = GameSession.builder()
+        var game = Game.builder()
                 .id(UUID.randomUUID())
                 .processor(processor)
                 .lastUsed(LocalDateTime.now())
                 .build();
-        sessionRepository.save(session.getId(), session);
-        var response = new GameSessionDTO(
-                session.getId(),
+        var username = SessionUtils.getUsername();
+        userGameCachedRepository.deleteUserGame(username);
+        gameCache.save(game.getId(), game);
+        userRepository.updateGameForUser(game.getId(), username);
+        var response = new GameDTO(
+                game.getId(),
                 processor.getLabyrinthDTO(),
                 processor.playerCoordinates(),
-                session.getTurns(),
+                game.getTurns(),
                 processor.finish(),
                 null);
         log.info("game created: {}", response.toString());
         return response;
     }
 
-    public GameSessionDTO getSession(UUID id) {
-        log.info("reading session: {}", id.toString());
-        var response = sessionRepository.get(id)
-                .map(session -> new GameSessionDTO(
-                        session.getId(),
-                        session.getProcessor().getLabyrinthDTO(),
-                        session.getProcessor().playerCoordinates(),
-                        session.getTurns(),
-                        null,
-                        null))
+    @Transactional(readOnly = true)
+    public GameDTO getCurrent() {
+        var username = SessionUtils.getUsername();
+        log.info("reading game for user {}", username);
+        var game = userGameCachedRepository.getGameByUsername(username)
                 .orElseThrow(NotFoundException::new);
-        log.info("retrieved session: {}", response.toString());
+        var response =  new GameDTO(
+                game.getId(),
+                game.getProcessor().getLabyrinthDTO(),
+                game.getProcessor().playerCoordinates(),
+                game.getTurns(),
+                null,
+                null);
+        log.info("retrieved game: {}", response.toString());
         return response;
     }
 
-    public GameSessionDTO moveUp(UUID sessionId) {
-        log.info("moving up: {}", sessionId.toString());
-        return move(sessionId, LabyrinthProcessor::moveUp);
+    @Transactional
+    public GameDTO moveUp() {
+        return move(MovementDirection.UP);
     }
 
-    public GameSessionDTO moveDown(UUID sessionId) {
-        log.info("moving down: {}", sessionId.toString());
-        return move(sessionId, LabyrinthProcessor::moveDown);
+    @Transactional
+    public GameDTO moveDown() {
+        return move(MovementDirection.DOWN);
     }
 
-    public GameSessionDTO moveLeft(UUID sessionId) {
-        log.info("moving left: {}", sessionId.toString());
-        return move(sessionId, LabyrinthProcessor::moveLeft);
+    @Transactional
+    public GameDTO moveLeft() {
+        return move(MovementDirection.LEFT);
     }
 
-    public GameSessionDTO moveRight(UUID sessionId) {
-        log.info("moving right: {}", sessionId.toString());
-        return move(sessionId, LabyrinthProcessor::moveRight);
+    @Transactional
+    public GameDTO moveRight() {
+        return move(MovementDirection.RIGHT);
     }
 
-    private GameSessionDTO move(UUID sessionId, Function<LabyrinthProcessor, Boolean> action) {
-        var session = sessionRepository.get(sessionId)
+    private GameDTO move(MovementDirection direction) {
+        var username = SessionUtils.getUsername();
+        log.info("moving {} {}", username, direction.toString().toLowerCase());
+        var game = userGameCachedRepository.getGameByUsername(username)
                 .orElseThrow(NotFoundException::new);
-        session.setTurns(session.getTurns() + 1);
-        session.setLastUsed(LocalDateTime.now());
-        var processor = session.getProcessor();
-        boolean successMove = action.apply(processor);
-        if (processor.finish()) {
-            sessionRepository.delete(sessionId);
+        game.setTurns(game.getTurns() + 1);
+        game.setLastUsed(LocalDateTime.now());
+        var processor = game.getProcessor();
+        if (game.getTurns() % properties.getGameFlushPeriod() == 0) {
+            gameCachedRepository.flush(game);
         }
-        var response = new GameSessionDTO(sessionId, processor.getLabyrinthDTO(), processor.playerCoordinates(),
-                session.getTurns(), processor.finish(), successMove);
+        boolean successMove = direction.action.apply(processor);
+        var response = new GameDTO(game.getId(), processor.getLabyrinthDTO(), processor.playerCoordinates(),
+                game.getTurns(), processor.finish(), successMove);
         log.info("movement result: {}", response);
         return response;
+    }
+
+    @RequiredArgsConstructor
+    private enum MovementDirection {
+        UP(LabyrinthProcessor::moveUp),
+        DOWN(LabyrinthProcessor::moveDown),
+        LEFT(LabyrinthProcessor::moveLeft),
+        RIGHT(LabyrinthProcessor::moveRight);
+
+        final Function<LabyrinthProcessor, Boolean> action;
     }
 
 }

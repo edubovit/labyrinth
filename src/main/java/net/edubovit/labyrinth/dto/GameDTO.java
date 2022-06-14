@@ -6,19 +6,18 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record GameSessionDTO(UUID id,
-                             @JsonUnwrapped LabyrinthDTO map,
-                             PlayerCoordinates playerCoordinates,
-                             int turns,
-                             Boolean finish,
-                             Boolean successMove) {
+public record GameDTO(UUID id,
+                      @JsonUnwrapped LabyrinthDTO map,
+                      PlayerCoordinates playerCoordinates,
+                      int turns,
+                      Boolean finish,
+                      Boolean successMove) {
 
-    public record PlayerCoordinates(int i, int j) {
-    }
+    public record PlayerCoordinates(int i, int j) {}
 
     @Override
     public String toString() {
-        return "GameSessionDTO{" +
+        return "GameDTO{" +
                 "id=" + id +
                 ", playerCoordinates=" + playerCoordinates +
                 ", turns=" + turns +

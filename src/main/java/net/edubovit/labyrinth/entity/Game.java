@@ -1,16 +1,15 @@
-package net.edubovit.labyrinth.domain;
-
-import net.edubovit.labyrinth.service.LabyrinthProcessor;
+package net.edubovit.labyrinth.entity;
 
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
 @Builder
-public class GameSession implements Identifiable<UUID> {
+public class Game implements Serializable {
 
     private UUID id;
 

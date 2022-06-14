@@ -1,17 +1,23 @@
-package net.edubovit.labyrinth.domain;
+package net.edubovit.labyrinth.entity;
+
+import net.edubovit.labyrinth.util.ReflectionUtils;
 
 import lombok.Getter;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Consumer;
 
-import static net.edubovit.labyrinth.domain.Wall.State.ABSENT;
-import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
-import static net.edubovit.labyrinth.domain.Wall.State.PLAN;
+import static net.edubovit.labyrinth.entity.Wall.State.ABSENT;
+import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
+import static net.edubovit.labyrinth.entity.Wall.State.PLAN;
 
-public class Labyrinth {
+public class Labyrinth implements Serializable {
 
     @Getter
     private final Cell[][] matrix;
@@ -22,20 +28,38 @@ public class Labyrinth {
     @Getter
     private final int height;
 
-    @Getter
-    private final HorizontalWall enter;
+    private final transient Random random;
 
-    @Getter
-    private final HorizontalWall exit;
-
-    private final Random random;
-
-    private final List<Way> availableDigDirections;
+    private final transient List<Way> availableDigDirections;
 
     public Labyrinth(int width, int height, long seed) {
         this.width = width;
         this.height = height;
         matrix = new Cell[height][width];
+        initializeField();
+        random = new Random(seed);
+        availableDigDirections = new ArrayList<>();
+        availableDigDirections.add(new Way(matrix[height - 1][width - 1], DigDirection.UP));
+    }
+
+    private Labyrinth(int width, int height) {
+        this.width = width;
+        this.height = height;
+        matrix = new Cell[height][width];
+        initializeField();
+        random = null;
+        availableDigDirections = null;
+    }
+
+    public Cell getCell(int x, int y) {
+        return matrix[y][x];
+    }
+
+    public void generateWalls() {
+        while (digTunnel());
+    }
+
+    private void initializeField() {
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 matrix[i][j] = new Cell(i, j);
@@ -74,33 +98,29 @@ public class Labyrinth {
                 }
             }
         }
-        enter = matrix[height - 1][width - 1].getDown().getWall();
-        exit = matrix[0][0].getUp().getWall();
-        random = new Random(seed);
-        availableDigDirections = new ArrayList<>();
-        availableDigDirections.add(new Way(matrix[height - 1][width - 1], DigDirection.UP));
     }
 
-    public void digTunnel(Way way, Consumer<Cell> cellDiggedListener) {
-        var cell = way.next;
-        var direction = way.to;
-        do {
-            dig(cell, direction);
-            cellDiggedListener.accept(cell);
-            direction = chooseRandomDirection(direction);
-            cell = direction.getCell(cell);
-        } while (cell != null);
+    private boolean digTunnel() {
+        var chosenWay = chooseRandomWay();
+        if (chosenWay == null) {
+            return false;
+        } else {
+            var cell = chosenWay.next;
+            var direction = chosenWay.to;
+            do {
+                dig(cell, direction);
+                direction = chooseRandomDirection(direction);
+                cell = direction.getCell(cell);
+            } while (cell != null);
+            return true;
+        }
     }
 
-    public Way chooseRandomWay() {
+    private Way chooseRandomWay() {
         if (availableDigDirections.isEmpty()) {
             return null;
         }
         return availableDigDirections.get(random.nextInt(availableDigDirections.size()));
-    }
-
-    public Cell getCell(int x, int y) {
-        return matrix[y][x];
     }
 
     private void dig(Cell cell, DigDirection to) {
@@ -167,10 +187,37 @@ public class Labyrinth {
         return previousDirection.nextPossibleDirections()[random.nextInt(3)];
     }
 
-    public record Way(Cell next, DigDirection to) {
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(width);
+        out.writeInt(height);
+        for (var row : matrix) {
+            for (var cell : row) {
+                out.writeByte(cell.tyByteState());
+            }
+        }
     }
 
-    public enum DigDirection {
+    @Serial
+    private void readObject(ObjectInputStream in) throws IOException, NoSuchFieldException, IllegalAccessException {
+        int width = in.readInt();
+        int height = in.readInt();
+        var replacement = new Labyrinth(width, height);
+        replacement.initializeField();
+        ReflectionUtils.setInt("width", this, width);
+        ReflectionUtils.setInt("height", this, height);
+        for (int i = 0; i < replacement.matrix.length; i++) {
+            for (int j = 0; j < replacement.matrix[i].length; j++) {
+                replacement.matrix[i][j].loadByteState(in.readByte());
+            }
+        }
+        ReflectionUtils.setObject("matrix", this, replacement.matrix);
+    }
+
+    private record Way(Cell next, DigDirection to) {
+    }
+
+    private enum DigDirection {
         UP, LEFT, RIGHT, DOWN;
 
         private static final DigDirection[] nextPossibleDirectionsUp = new DigDirection[] { LEFT, UP, RIGHT };

@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import javax.validation.constraints.Positive;
+
 @Configuration
 @ConfigurationProperties("labyrinth")
 @Getter
@@ -12,5 +14,8 @@ import org.springframework.context.annotation.Configuration;
 public class ApplicationProperties {
 
     private String[] allowedOrigins;
+
+    @Positive
+    private int gameFlushPeriod;
 
 }
