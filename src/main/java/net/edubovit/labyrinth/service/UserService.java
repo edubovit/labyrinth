@@ -6,21 +6,23 @@ import net.edubovit.labyrinth.entity.User;
 import net.edubovit.labyrinth.exception.Exceptions;
 import net.edubovit.labyrinth.exception.UsernameAlreadyExistsException;
 import net.edubovit.labyrinth.repository.db.UserRepository;
-import net.edubovit.labyrinth.util.SessionUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpSession;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserService {
+
+    private final SessionUtilService sessionUtilService;
 
     private final UserRepository userRepository;
 
@@ -30,13 +32,18 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserDTO getCurrent() {
-        return new UserDTO(loadUserByAuth());
+        String username = sessionUtilService.getUsername();
+        log.info("loading user {}", username);
+        var response = new UserDTO(userRepository.findByUsername(username)
+                .orElseThrow(Exceptions.usernameNotFoundException(username)));
+        log.info("loaded user: {}", response.toString());
+        return response;
     }
 
     @Transactional
     public UserDTO signup(UserCredentialsDTO request) {
-        log.info("signing up user {}, remote address: {}",
-                request.username(), SessionUtils.getHttpServletRequest().getRemoteAddr());
+        log.info("signing up user {}, remote address: {}, real IP: {}",
+                request.username(), sessionUtilService.getRemoteAddress(), sessionUtilService.getXRealIP());
         if (userRepository.existsByUsername(request.username())) {
             throw UsernameAlreadyExistsException.of(request.username());
         }
@@ -51,34 +58,21 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserDTO authenticate(UserCredentialsDTO request) {
-        log.info("authentication request from {}, remote address: {}",
-                request.username(), SessionUtils.getHttpServletRequest().getRemoteAddr());
+        log.info("authentication request from {}, remote address: {}, real IP: {}",
+                request.username(), sessionUtilService.getRemoteAddress(), sessionUtilService.getXRealIP());
         var user = userRepository.findByUsername(request.username())
                 .orElseThrow(Exceptions.usernameNotFoundException(request.username()));
         return authenticate(request, user);
     }
 
     public void logout() {
-        var session = SessionUtils.getHttpServletRequest().getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+        sessionUtilService.getSession().ifPresent(HttpSession::invalidate);
     }
 
     private UserDTO authenticate(UserCredentialsDTO request, User user) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.username(), request.password()));
         log.info("user {} has successfully authenticated", request.username());
         return new UserDTO(user);
-    }
-
-    private User loadUserByAuth() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info("loading user from authentication: {}", authentication.toString());
-        String username = SessionUtils.retrieveUsernameFromAuthentication(authentication);
-        var user = userRepository.findByUsername(username)
-                .orElseThrow(Exceptions.usernameNotFoundException(username));
-        log.info("loaded user: {}", user.toString());
-        return user;
     }
 
 }

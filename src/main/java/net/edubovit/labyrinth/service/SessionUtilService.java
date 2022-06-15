@@ -1,37 +1,46 @@
-package net.edubovit.labyrinth.util;
+package net.edubovit.labyrinth.service;
 
 import net.edubovit.labyrinth.config.security.Constants;
 
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.util.Optional;
 
-@UtilityClass
+@Service
 @Slf4j
-public final class SessionUtils {
+public class SessionUtilService {
 
-    public static HttpServletRequest getHttpServletRequest() {
-        return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+    public Optional<HttpSession> getSession() {
+        return Optional.ofNullable(getHttpServletRequest().getSession(false));
     }
 
-    public static HttpServletResponse getHttpServletResponse() {
-        return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getResponse();
+    public void putToSession(String key, Object value) {
+        getHttpServletRequest().getSession(true).setAttribute(key, value);
     }
 
-    public static String getUsername() {
+    public String getRemoteAddress() {
+        return getHttpServletRequest().getRemoteAddr();
+    }
+
+    public String getXRealIP() {
+        return getHttpServletRequest().getHeader("X-Real-IP");
+    }
+
+    public String getUsername() {
         var authentication = (Authentication) getHttpServletRequest()
                 .getSession(false)
                 .getAttribute(Constants.SESSION_AUTHENTICATION_ATTRIBUTE);
         return retrieveUsernameFromAuthentication(authentication);
     }
 
-    public static String retrieveUsernameFromAuthentication(Authentication authentication) {
+    private String retrieveUsernameFromAuthentication(Authentication authentication) {
         Object principal = authentication.getPrincipal();
         return switch (principal) {
             case UserDetails userDetails -> userDetails.getUsername();
@@ -41,6 +50,10 @@ public final class SessionUtils {
                 yield principal.toString();
             }
         };
+    }
+
+    private HttpServletRequest getHttpServletRequest() {
+        return ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
     }
 
 }

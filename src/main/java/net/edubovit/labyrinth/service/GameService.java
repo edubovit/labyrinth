@@ -10,7 +10,6 @@ import net.edubovit.labyrinth.repository.cached.GameCachedRepository;
 import net.edubovit.labyrinth.repository.cached.UserGameCachedRepository;
 import net.edubovit.labyrinth.repository.db.UserRepository;
 import net.edubovit.labyrinth.repository.memory.GameCache;
-import net.edubovit.labyrinth.util.SessionUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +24,8 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 @Slf4j
 public class GameService {
+
+    private final SessionUtilService sessionUtilService;
 
     private final GameCachedRepository gameCachedRepository;
 
@@ -46,7 +47,7 @@ public class GameService {
                 .processor(processor)
                 .lastUsed(LocalDateTime.now())
                 .build();
-        var username = SessionUtils.getUsername();
+        var username = sessionUtilService.getUsername();
         userGameCachedRepository.deleteUserGame(username);
         gameCache.save(game.getId(), game);
         userRepository.updateGameForUser(game.getId(), username);
@@ -63,7 +64,7 @@ public class GameService {
 
     @Transactional(readOnly = true)
     public GameDTO getCurrent() {
-        var username = SessionUtils.getUsername();
+        var username = sessionUtilService.getUsername();
         log.info("reading game for user {}", username);
         var game = userGameCachedRepository.getGameByUsername(username)
                 .orElseThrow(NotFoundException::new);
@@ -99,7 +100,7 @@ public class GameService {
     }
 
     private GameDTO move(MovementDirection direction) {
-        var username = SessionUtils.getUsername();
+        var username = sessionUtilService.getUsername();
         log.info("moving {} {}", username, direction.toString().toLowerCase());
         var game = userGameCachedRepository.getGameByUsername(username)
                 .orElseThrow(NotFoundException::new);
