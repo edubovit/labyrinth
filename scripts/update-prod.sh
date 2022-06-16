@@ -4,6 +4,7 @@ REVISION=${REVISION:-master}
 REPO_LOCATION=${REPO_LOCATION:-$(pwd)}
 
 cd "${REPO_LOCATION:-$(pwd)}"
+source .env
 
 git reset HEAD --hard
 git clean -fd
