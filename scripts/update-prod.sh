@@ -22,6 +22,6 @@ cd ui
 npm install
 npm run build
 rm -rf "$UI_DEPLOYMENT_LOCATION:?"/*
-cp -rf dist/* "$UI_DEPLOYMENT_LOCATION"/
+cp -rf dist/. "$UI_DEPLOYMENT_LOCATION"/
 
 echo "Deployment successful!"
