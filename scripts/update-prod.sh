@@ -19,6 +19,7 @@ cp -f build/libs/labyrinth*.jar "$BACKEND_DEPLOYMENT_LOCATION"/labyrinth.jar
 sudo systemctl start labyrinth.service
 
 cd ui
+rm -rf dist node_modules
 npm install
 npm run build
 rm -rf "$UI_DEPLOYMENT_LOCATION:?"/*
