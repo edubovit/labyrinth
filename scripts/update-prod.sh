@@ -14,6 +14,7 @@ git checkout origin/"$REVISION"
 ./gradlew --no-daemon clean
 ./gradlew --no-daemon build
 sudo systemctl stop labyrinth.service
+rm -rf build/libs/labyrinth*-plain.jar
 cp -f build/libs/labyrinth*.jar "$BACKEND_DEPLOYMENT_LOCATION"/labyrinth.jar
 sudo systemctl start labyrinth.service
 
