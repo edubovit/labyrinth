@@ -1,11 +1,9 @@
 package net.edubovit.labyrinth.entity;
 
-import net.edubovit.labyrinth.entity.Cell;
-import net.edubovit.labyrinth.entity.Direction;
-import net.edubovit.labyrinth.entity.Labyrinth;
-import net.edubovit.labyrinth.entity.Player;
-import net.edubovit.labyrinth.dto.GameDTO;
+import net.edubovit.labyrinth.dto.CellChangeDTO;
+import net.edubovit.labyrinth.dto.Coordinates;
 import net.edubovit.labyrinth.dto.LabyrinthDTO;
+import net.edubovit.labyrinth.dto.MovementResultDTO;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -20,6 +18,7 @@ import static net.edubovit.labyrinth.config.Defaults.VIEW_DISTANCE;
 import static net.edubovit.labyrinth.entity.Visibility.REVEALED;
 import static net.edubovit.labyrinth.entity.Visibility.SEEN;
 import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 public class LabyrinthProcessor implements Serializable {
@@ -46,19 +45,19 @@ public class LabyrinthProcessor implements Serializable {
         player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
     }
 
-    public boolean moveUp() {
+    public MovementResultDTO moveUp() {
         return move(player.getPosition().getUp());
     }
 
-    public boolean moveDown() {
+    public MovementResultDTO moveDown() {
         return move(player.getPosition().getDown());
     }
 
-    public boolean moveLeft() {
+    public MovementResultDTO moveLeft() {
         return move(player.getPosition().getLeft());
     }
 
-    public boolean moveRight() {
+    public MovementResultDTO moveRight() {
         return move(player.getPosition().getRight());
     }
 
@@ -66,23 +65,38 @@ public class LabyrinthProcessor implements Serializable {
         return player.getPosition().getI() == 0 && player.getPosition().getJ() == 0;
     }
 
-    public GameDTO.PlayerCoordinates playerCoordinates() {
-        return new GameDTO.PlayerCoordinates(player.getPosition().getI(), player.getPosition().getJ());
+    public Coordinates playerCoordinates() {
+        return new Coordinates(player.getPosition().getI(), player.getPosition().getJ());
     }
 
-    public LabyrinthDTO getLabyrinthDTO() {
+    public int turns() {
+        return player.getTurns();
+    }
+
+    public LabyrinthDTO buildLabyrinthDTO() {
         return new LabyrinthDTO(labyrinth, singletonList(player));
     }
 
-    private boolean move(Direction<?> direction) {
+    private MovementResultDTO move(Direction<?> direction) {
         if (direction.getWall().getState() == FINAL) {
-            return false;
+            return new MovementResultDTO(emptyList(), playerCoordinates(), player.getTurns(), finish());
         } else {
+            player.setTurns(player.getTurns() + 1);
+            var prevSeenTiles = player.getSeenTiles();
             player.getSeenTiles().forEach(cell -> cell.setVisibility(REVEALED));
             player.setPosition(direction.getCell());
-            player.setSeenTiles(seenTiles());
+            var newSeenTiles = seenTiles();
+            player.setSeenTiles(newSeenTiles);
             player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
-            return true;
+            return new MovementResultDTO(
+                    Stream.of(prevSeenTiles, newSeenTiles)
+                            .flatMap(Collection::stream)
+                            .distinct()
+                            .map(CellChangeDTO::new)
+                            .toList(),
+                    playerCoordinates(),
+                    player.getTurns(),
+                    finish());
         }
     }
 

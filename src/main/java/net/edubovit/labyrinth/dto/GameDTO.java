@@ -8,12 +8,9 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record GameDTO(UUID id,
                       @JsonUnwrapped LabyrinthDTO map,
-                      PlayerCoordinates playerCoordinates,
+                      Coordinates playerCoordinates,
                       int turns,
-                      Boolean finish,
-                      Boolean successMove) {
-
-    public record PlayerCoordinates(int i, int j) {}
+                      Boolean finish) {
 
     @Override
     public String toString() {
@@ -22,7 +19,6 @@ public record GameDTO(UUID id,
                 ", playerCoordinates=" + playerCoordinates +
                 ", turns=" + turns +
                 ", finish=" + finish +
-                ", successMove=" + successMove +
                 '}';
     }
 

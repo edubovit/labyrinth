@@ -12,6 +12,8 @@ public class Player implements Serializable {
 
     private Collection<Cell> seenTiles;
 
+    private int turns;
+
     void postDeserialize(Cell[][] matrix) {
         position = matrix[position.getI()][position.getJ()];
         seenTiles = seenTiles.stream()

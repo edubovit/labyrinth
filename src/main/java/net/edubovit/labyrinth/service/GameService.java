@@ -3,6 +3,7 @@ package net.edubovit.labyrinth.service;
 import net.edubovit.labyrinth.config.properties.ApplicationProperties;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
 import net.edubovit.labyrinth.dto.GameDTO;
+import net.edubovit.labyrinth.dto.MovementResultDTO;
 import net.edubovit.labyrinth.entity.Game;
 import net.edubovit.labyrinth.entity.LabyrinthProcessor;
 import net.edubovit.labyrinth.exception.NotFoundException;
@@ -39,7 +40,7 @@ public class GameService {
 
     @Transactional
     public GameDTO create(CreateGameRequestDTO request) {
-        log.info("creating game: {}", request.toString());
+        log.info("creating game: {}", request);
         var processor = new LabyrinthProcessor(request.width(), request.height(), request.seed());
         processor.generate();
         var game = Game.builder()
@@ -53,12 +54,11 @@ public class GameService {
         userRepository.updateGameForUser(game.getId(), username);
         var response = new GameDTO(
                 game.getId(),
-                processor.getLabyrinthDTO(),
+                processor.buildLabyrinthDTO(),
                 processor.playerCoordinates(),
-                game.getTurns(),
-                processor.finish(),
-                null);
-        log.info("game created: {}", response.toString());
+                processor.turns(),
+                processor.finish());
+        log.info("game created: {}", response);
         return response;
     }
 
@@ -68,52 +68,49 @@ public class GameService {
         log.info("reading game for user {}", username);
         var game = userGameCachedRepository.getGameByUsername(username)
                 .orElseThrow(NotFoundException::new);
+        var processor = game.getProcessor();
         var response =  new GameDTO(
                 game.getId(),
-                game.getProcessor().getLabyrinthDTO(),
-                game.getProcessor().playerCoordinates(),
-                game.getTurns(),
-                null,
+                processor.buildLabyrinthDTO(),
+                processor.playerCoordinates(),
+                processor.turns(),
                 null);
-        log.info("retrieved game: {}", response.toString());
+        log.info("retrieved game: {}", response);
         return response;
     }
 
     @Transactional
-    public GameDTO moveUp() {
+    public MovementResultDTO moveUp() {
         return move(MovementDirection.UP);
     }
 
     @Transactional
-    public GameDTO moveDown() {
+    public MovementResultDTO moveDown() {
         return move(MovementDirection.DOWN);
     }
 
     @Transactional
-    public GameDTO moveLeft() {
+    public MovementResultDTO moveLeft() {
         return move(MovementDirection.LEFT);
     }
 
     @Transactional
-    public GameDTO moveRight() {
+    public MovementResultDTO moveRight() {
         return move(MovementDirection.RIGHT);
     }
 
-    private GameDTO move(MovementDirection direction) {
+    private MovementResultDTO move(MovementDirection direction) {
         var username = sessionUtilService.getUsername();
         log.info("moving {} {}", username, direction.toString().toLowerCase());
         var game = userGameCachedRepository.getGameByUsername(username)
                 .orElseThrow(NotFoundException::new);
-        game.setTurns(game.getTurns() + 1);
         game.setLastUsed(LocalDateTime.now());
         var processor = game.getProcessor();
-        if (game.getTurns() % properties.getGameFlushPeriod() == 0) {
+        if (processor.turns() % properties.getGameFlushPeriod() == 0) {
             gameCachedRepository.flush(game);
         }
-        boolean successMove = direction.action.apply(processor);
-        var response = new GameDTO(game.getId(), processor.getLabyrinthDTO(), processor.playerCoordinates(),
-                game.getTurns(), processor.finish(), successMove);
-        log.info("movement result: {}", response);
+        var response = direction.action.apply(processor);
+        log.info("game {} movement result: {}", game.getId(), response);
         return response;
     }
 
@@ -124,7 +121,7 @@ public class GameService {
         LEFT(LabyrinthProcessor::moveLeft),
         RIGHT(LabyrinthProcessor::moveRight);
 
-        final Function<LabyrinthProcessor, Boolean> action;
+        final Function<LabyrinthProcessor, MovementResultDTO> action;
     }
 
 }

@@ -15,8 +15,6 @@ public class Game implements Serializable {
 
     private LabyrinthProcessor processor;
 
-    private int turns;
-
     private LocalDateTime lastUsed;
 
 }

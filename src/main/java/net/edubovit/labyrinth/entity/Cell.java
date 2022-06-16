@@ -44,7 +44,7 @@ public class Cell implements Serializable {
         down = new Direction<>();
     }
 
-    public byte tyByteState() {
+    byte tyByteState() {
         byte result = 0;
         if (up.getWall().getState() == FINAL) result |= 1 << 0;
         if (down.getWall().getState() == FINAL) result |= 1 << 1;
@@ -58,7 +58,7 @@ public class Cell implements Serializable {
         return result;
     }
 
-    public void loadByteState(byte state) {
+    void loadByteState(byte state) {
         if ((state & 1 << 0) != 0) up.getWall().setState(FINAL);
         if ((state & 1 << 1) != 0) down.getWall().setState(FINAL);
         if ((state & 1 << 2) != 0) left.getWall().setState(FINAL);

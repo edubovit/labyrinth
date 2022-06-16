@@ -4,6 +4,7 @@ import net.edubovit.labyrinth.config.URIPaths;
 import net.edubovit.labyrinth.config.security.PreAuthorizeUser;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
 import net.edubovit.labyrinth.dto.GameDTO;
+import net.edubovit.labyrinth.dto.MovementResultDTO;
 import net.edubovit.labyrinth.service.GameService;
 
 import lombok.RequiredArgsConstructor;
@@ -34,25 +35,25 @@ public class GameController {
 
     @PostMapping("up")
     @PreAuthorizeUser
-    public GameDTO moveUp() {
+    public MovementResultDTO moveUp() {
         return service.moveUp();
     }
 
     @PostMapping("down")
     @PreAuthorizeUser
-    public GameDTO moveDown() {
+    public MovementResultDTO moveDown() {
         return service.moveDown();
     }
 
     @PostMapping("left")
     @PreAuthorizeUser
-    public GameDTO moveLeft() {
+    public MovementResultDTO moveLeft() {
         return service.moveLeft();
     }
 
     @PostMapping("right")
     @PreAuthorizeUser
-    public GameDTO moveRight() {
+    public MovementResultDTO moveRight() {
         return service.moveRight();
     }
 
