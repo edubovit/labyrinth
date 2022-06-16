@@ -27,15 +27,11 @@ jobs:
         run: ./gradlew build
       - name: Upgrade production deployment
         uses: appleboy/ssh-action@master
-        env:
-          BACKEND_DEPLOYMENT_LOCATION: ${{ secrets.BACKEND_DEPLOYMENT_LOCATION }}
-          UI_DEPLOYMENT_LOCATION: ${{ secrets.UI_DEPLOYMENT_LOCATION }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
-          envs: BACKEND_DEPLOYMENT_LOCATION,UI_DEPLOYMENT_LOCATION
           script: |
             cd ${{ secrets.REPO_LOCATION }}
-            scripts/update-prod.sh
+            BACKEND_DEPLOYMENT_LOCATION=${{ secrets.BACKEND_DEPLOYMENT_LOCATION }} UI_DEPLOYMENT_LOCATION=${{ secrets.UI_DEPLOYMENT_LOCATION }} scripts/update-prod.sh
