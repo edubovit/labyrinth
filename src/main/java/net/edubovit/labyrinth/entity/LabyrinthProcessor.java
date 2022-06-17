@@ -41,7 +41,7 @@ public class LabyrinthProcessor implements Serializable {
     public void generate() {
         labyrinth.generateWalls();
         player.setPosition(labyrinth.getCell(width - 1, height - 1));
-        player.setSeenTiles(seenTiles());
+        player.setSeenTiles(seenTiles(player.getPosition()));
         player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
     }
 
@@ -81,34 +81,31 @@ public class LabyrinthProcessor implements Serializable {
         if (direction.getWall().getState() == FINAL) {
             return new MovementResultDTO(emptyList(), playerCoordinates(), player.getTurns(), finish());
         } else {
-            player.setTurns(player.getTurns() + 1);
+            var prevPosition = player.getPosition();
+            var nextPosition = direction.getCell();
             var prevSeenTiles = player.getSeenTiles();
-            player.getSeenTiles().forEach(cell -> cell.setVisibility(REVEALED));
-            player.setPosition(direction.getCell());
-            var newSeenTiles = seenTiles();
-            player.setSeenTiles(newSeenTiles);
-            player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
+            var nextSeenTiles = seenTiles(nextPosition);
+            prevSeenTiles.forEach(cell -> cell.setVisibility(REVEALED));
+            nextSeenTiles.forEach(cell -> cell.setVisibility(SEEN));
+            player.setPosition(nextPosition);
+            player.setSeenTiles(nextSeenTiles);
+            player.setTurns(player.getTurns() + 1);
             return new MovementResultDTO(
-                    Stream.of(prevSeenTiles, newSeenTiles)
-                            .flatMap(Collection::stream)
-                            .distinct()
-                            .map(CellChangeDTO::new)
-                            .toList(),
+                    changedTiles(prevPosition, nextPosition, prevSeenTiles, nextSeenTiles),
                     playerCoordinates(),
                     player.getTurns(),
                     finish());
         }
     }
 
-    private Collection<Cell> seenTiles() {
-        var result = new ArrayList<Cell>();
-        var position = player.getPosition();
-        result.add(position);
-        result.addAll(viewDirection(position, Cell::getUp, cell -> Stream.of(cell.getLeft(), cell.getRight())));
-        result.addAll(viewDirection(position, Cell::getDown, cell -> Stream.of(cell.getLeft(), cell.getRight())));
-        result.addAll(viewDirection(position, Cell::getLeft, cell -> Stream.of(cell.getUp(), cell.getDown())));
-        result.addAll(viewDirection(position, Cell::getRight, cell -> Stream.of(cell.getUp(), cell.getDown())));
-        return result;
+    private Collection<Cell> seenTiles(Cell position) {
+        return Stream.of(singletonList(position),
+                        viewDirection(position, Cell::getUp, cell -> Stream.of(cell.getLeft(), cell.getRight())),
+                        viewDirection(position, Cell::getDown, cell -> Stream.of(cell.getLeft(), cell.getRight())),
+                        viewDirection(position, Cell::getLeft, cell -> Stream.of(cell.getUp(), cell.getDown())),
+                        viewDirection(position, Cell::getRight, cell -> Stream.of(cell.getUp(), cell.getDown())))
+                .flatMap(Collection::stream)
+                .toList();
     }
 
     private Collection<Cell> viewDirection(Cell start, Function<Cell, Direction<?>> next, Function<Cell, Stream<Direction<?>>> adjacent) {
@@ -127,6 +124,25 @@ public class LabyrinthProcessor implements Serializable {
                     .forEach(result::add);
         }
         return result;
+    }
+
+    private Collection<CellChangeDTO> changedTiles(Cell prevPosition, Cell nextPosition,
+                                          Collection<Cell> prevSeenTiles, Collection<Cell> nextSeenTiles) {
+        var changedTiles = new ArrayList<>(prevSeenTiles);
+        nextSeenTiles.forEach(tile -> {
+            if (!changedTiles.remove(tile)) {
+                changedTiles.add(tile);
+            }
+        });
+        if (!changedTiles.contains(prevPosition)) {
+            changedTiles.add(prevPosition);
+        }
+        if (!changedTiles.contains(nextPosition)) {
+            changedTiles.add(nextPosition);
+        }
+        return changedTiles.stream()
+                .map(CellChangeDTO::new)
+                .toList();
     }
 
     @Serial
