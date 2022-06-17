@@ -1,6 +1,6 @@
 package net.edubovit.labyrinth.dto;
 
-import net.edubovit.labyrinth.entity.Cell;
+import net.edubovit.labyrinth.domain.Cell;
 
 public record CellChangeDTO(int i, int j, CellDTO newState) {
 

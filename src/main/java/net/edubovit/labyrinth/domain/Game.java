@@ -1,4 +1,6 @@
-package net.edubovit.labyrinth.entity;
+package net.edubovit.labyrinth.domain;
+
+import net.edubovit.labyrinth.domain.LabyrinthProcessor;
 
 import lombok.Builder;
 import lombok.Data;

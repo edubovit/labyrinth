@@ -1,6 +1,6 @@
 package net.edubovit.labyrinth.repository.cached;
 
-import net.edubovit.labyrinth.entity.Game;
+import net.edubovit.labyrinth.domain.Game;
 import net.edubovit.labyrinth.entity.GameBlob;
 import net.edubovit.labyrinth.repository.db.GameRepository;
 import net.edubovit.labyrinth.repository.memory.GameCache;

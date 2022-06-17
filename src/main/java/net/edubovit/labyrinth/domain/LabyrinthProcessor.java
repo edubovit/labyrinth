@@ -1,4 +1,4 @@
-package net.edubovit.labyrinth.entity;
+package net.edubovit.labyrinth.domain;
 
 import net.edubovit.labyrinth.dto.CellChangeDTO;
 import net.edubovit.labyrinth.dto.Coordinates;
@@ -15,9 +15,9 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static net.edubovit.labyrinth.config.Defaults.VIEW_DISTANCE;
-import static net.edubovit.labyrinth.entity.Visibility.REVEALED;
-import static net.edubovit.labyrinth.entity.Visibility.SEEN;
-import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
+import static net.edubovit.labyrinth.domain.Visibility.REVEALED;
+import static net.edubovit.labyrinth.domain.Visibility.SEEN;
+import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 

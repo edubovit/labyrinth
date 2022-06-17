@@ -1,4 +1,4 @@
-package net.edubovit.labyrinth.entity;
+package net.edubovit.labyrinth.domain;
 
 import lombok.Data;
 

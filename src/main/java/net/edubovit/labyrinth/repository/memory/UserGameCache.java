@@ -1,6 +1,6 @@
 package net.edubovit.labyrinth.repository.memory;
 
-import net.edubovit.labyrinth.entity.Game;
+import net.edubovit.labyrinth.domain.Game;
 
 import org.springframework.stereotype.Component;
 
