@@ -110,7 +110,9 @@ public class GameService {
             gameCachedRepository.flush(game);
         }
         var response = direction.action.apply(processor);
-        log.info("game {} movement result: {}", game.getId(), response);
+        log.info("movement result: game {}, changes={}, turns={}, player at (i={},j={}), finish={}",
+                game.getId(), response.changes().size(), response.turns(),
+                response.playerCoordinates().i(), response.playerCoordinates().j(), response.finish());
         return response;
     }
 
