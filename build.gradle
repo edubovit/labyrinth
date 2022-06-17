@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'net.edubovit'
-version '2.0.0'
+version '3.0'
 
 configurations {
     compileOnly {
@@ -31,13 +31,23 @@ application {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.flywaydb:flyway-core'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+//    implementation 'org.apache.commons:commons-collections4:4.4'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.withType(JavaCompile) {
@@ -45,6 +55,11 @@ tasks.withType(JavaCompile) {
 }
 
 tasks.withType(JavaExec) {
+    jvmArgs += '--enable-preview'
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
     jvmArgs += '--enable-preview'
 }
 

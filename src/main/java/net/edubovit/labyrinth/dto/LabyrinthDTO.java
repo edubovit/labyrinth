@@ -1,7 +1,7 @@
 package net.edubovit.labyrinth.dto;
 
-import net.edubovit.labyrinth.domain.Labyrinth;
-import net.edubovit.labyrinth.domain.Player;
+import net.edubovit.labyrinth.entity.Labyrinth;
+import net.edubovit.labyrinth.entity.Player;
 
 import java.util.Collection;
 

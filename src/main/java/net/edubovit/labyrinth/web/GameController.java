@@ -1,54 +1,60 @@
 package net.edubovit.labyrinth.web;
 
+import net.edubovit.labyrinth.config.URIPaths;
+import net.edubovit.labyrinth.config.security.PreAuthorizeUser;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
-import net.edubovit.labyrinth.dto.GameSessionDTO;
+import net.edubovit.labyrinth.dto.GameDTO;
+import net.edubovit.labyrinth.dto.MovementResultDTO;
 import net.edubovit.labyrinth.service.GameService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
-
 @RestController
-@RequestMapping("game")
+@RequestMapping(URIPaths.ROOT_GAME)
 @RequiredArgsConstructor
 public class GameController {
 
     private final GameService service;
 
     @PostMapping("create")
-    public GameSessionDTO createGame(@RequestBody(required = false) CreateGameRequestDTO request) {
+    @PreAuthorizeUser
+    public GameDTO createGame(@RequestBody(required = false) CreateGameRequestDTO request) {
         return service.create(request == null ? CreateGameRequestDTO.defaultGame() : request);
     }
 
-    @GetMapping("{id}")
-    public GameSessionDTO getSession(@PathVariable UUID id) {
-        return service.getSession(id);
+    @GetMapping
+    @PreAuthorizeUser
+    public GameDTO getSession() {
+        return service.getCurrent();
     }
 
-    @PostMapping("{id}/up")
-    public GameSessionDTO moveUp(@PathVariable UUID id) {
-        return service.moveUp(id);
+    @PostMapping("up")
+    @PreAuthorizeUser
+    public MovementResultDTO moveUp() {
+        return service.moveUp();
     }
 
-    @PostMapping("{id}/down")
-    public GameSessionDTO moveDown(@PathVariable UUID id) {
-        return service.moveDown(id);
+    @PostMapping("down")
+    @PreAuthorizeUser
+    public MovementResultDTO moveDown() {
+        return service.moveDown();
     }
 
-    @PostMapping("{id}/left")
-    public GameSessionDTO moveLeft(@PathVariable UUID id) {
-        return service.moveLeft(id);
+    @PostMapping("left")
+    @PreAuthorizeUser
+    public MovementResultDTO moveLeft() {
+        return service.moveLeft();
     }
 
-    @PostMapping("{id}/right")
-    public GameSessionDTO moveRight(@PathVariable UUID id) {
-        return service.moveRight(id);
+    @PostMapping("right")
+    @PreAuthorizeUser
+    public MovementResultDTO moveRight() {
+        return service.moveRight();
     }
 
 }

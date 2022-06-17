@@ -1,0 +1,37 @@
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 18
+        uses: actions/setup-java@v3
+        with:
+          java-version: '18'
+          distribution: 'temurin'
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Check Gradle version
+        run: ./gradlew --version
+      - name: Execute Gradle build
+        run: ./gradlew build
+      - name: Upgrade production deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ${{ secrets.REPO_LOCATION }}
+            BACKEND_DEPLOYMENT_LOCATION=${{ secrets.BACKEND_DEPLOYMENT_LOCATION }} UI_DEPLOYMENT_LOCATION=${{ secrets.UI_DEPLOYMENT_LOCATION }} scripts/update-prod.sh

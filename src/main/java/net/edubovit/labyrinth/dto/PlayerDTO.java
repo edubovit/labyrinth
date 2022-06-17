@@ -1,6 +1,6 @@
 package net.edubovit.labyrinth.dto;
 
-import net.edubovit.labyrinth.domain.Player;
+import net.edubovit.labyrinth.entity.Player;
 
 public record PlayerDTO(String name, int x, int y) {
 

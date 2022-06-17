@@ -1,12 +1,12 @@
 package net.edubovit.labyrinth.dto;
 
-import net.edubovit.labyrinth.domain.Cell;
-import net.edubovit.labyrinth.domain.Visibility;
+import net.edubovit.labyrinth.entity.Cell;
+import net.edubovit.labyrinth.entity.Visibility;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
+import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
 
 public record CellDTO(boolean wallUp,
                       boolean wallDown,
