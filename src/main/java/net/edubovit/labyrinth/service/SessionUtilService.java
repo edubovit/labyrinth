@@ -1,9 +1,8 @@
 package net.edubovit.labyrinth.service;
 
-import net.edubovit.labyrinth.config.security.Constants;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -34,10 +33,7 @@ public class SessionUtilService {
     }
 
     public String getUsername() {
-        var authentication = (Authentication) getHttpServletRequest()
-                .getSession(false)
-                .getAttribute(Constants.SESSION_AUTHENTICATION_ATTRIBUTE);
-        return retrieveUsernameFromAuthentication(authentication);
+        return retrieveUsernameFromAuthentication(SecurityContextHolder.getContext().getAuthentication());
     }
 
     private String retrieveUsernameFromAuthentication(Authentication authentication) {

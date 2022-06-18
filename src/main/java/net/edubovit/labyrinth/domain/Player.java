@@ -8,6 +8,8 @@ import java.util.Collection;
 @Data
 public class Player implements Serializable {
 
+    private final String username;
+
     private Cell position;
 
     private Collection<Cell> seenTiles;

@@ -17,8 +17,8 @@ public class WebSecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf().disable()
                 .formLogin().disable()
+                .logout().disable()
                 .build();
     }
 

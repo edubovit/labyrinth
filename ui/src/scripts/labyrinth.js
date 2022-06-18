@@ -1,3 +1,5 @@
+StompJs = require('@stomp/stompjs');
+
 const SCALE = 1// step 0.5
 
 const BLOCK_SIZE = 40 * SCALE
@@ -20,7 +22,13 @@ const ctx = canvas.getContext('2d');
 
 let currentPage = 'login';
 
-let playerCoordinates = {'x': 0, 'y': 0}
+let username;
+let gameId;
+let playerCoordinates;
+
+let stompClient;
+let csrf;
+let csrfHeaders;
 
 
 window.onload = async () => {
@@ -30,6 +38,7 @@ window.onload = async () => {
 
 
 async function index() {
+    await obtainCsrfToken();
     if (await checkSession()) {
         await loadGame();
     }
@@ -38,9 +47,11 @@ async function index() {
 async function checkSession() {
     const response = await fetch(`${API_HOST}/user/me`, {
         method: "GET",
-        credentials: "include"
+        credentials: "include",
+        headers: csrfHeaders
     });
     if (response.ok) {
+        window.username = (await response.json()).username;
         showPageGame();
     } else {
         showPageLogin();
@@ -58,6 +69,7 @@ async function getSessionGame() {
     const response = await fetch(`${API_HOST}/game/`, {
         method: 'GET',
         credentials: "include",
+        headers: csrfHeaders
     });
     if (!response.ok) {
         return false;
@@ -73,46 +85,58 @@ async function createGame(data) {
     const response = await fetch(`${API_HOST}/game/create/`, {
         method: 'POST',
         credentials: "include",
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', ...csrfHeaders},
         body: data
     });
     renderGame(await response.json());
 }
 
-async function doTheMove(direction) {
-    const response = await fetch(`${API_HOST}/game/${direction}/`, {
-        method: 'POST',
-        credentials: "include",
-        headers: {'Content-Type': 'application/json'},
+function doTheMove(direction) {
+    stompClient.publish({
+        destination: `/app/game/move/${direction}`
     });
-    const body = await response.json();
-    reflectChanges(body.changes, {x: body.playerCoordinates.j, y: body.playerCoordinates.i});
-    document.getElementsByClassName("moves__count")[0].innerHTML = body.turns;
-    if (body.finish) {
-        alert("Молодец какой");
-    }
 }
 
 function renderGame(game) {
+    gameId = game.id;
     canvas.width = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map[0].length;
     canvas.height = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map.length;
     document.getElementsByClassName("moves__count")[0].innerHTML = game.turns;
-    draw(game.map, {x: game.playerCoordinates.j, y: game.playerCoordinates.i});
+    draw(game.map);
+    if (stompClient) {
+        stompClient.deactivate();
+    }
+    stompClient = new StompJs.Client({
+        brokerURL: `${API_HOST.replace('http', 'ws')}/ws`,
+        connectHeaders: csrfHeaders,
+        reconnectDelay: 5000,
+        onConnect: function (frame) {
+            const subscription = stompClient.subscribe(`/topic/game/${gameId}`, function (message) {
+                const payload = JSON.parse(message.body);
+                reflectChanges(payload);
+            })
+        }
+    });
+    stompClient.activate();
 }
 
-function draw(map, userPos) {
+function draw(map) {
     drawAllTiles(map);
-    drawPlayer(userPos);
     drawOuterBorders();
 }
 
-function reflectChanges(changedTiles, userPos) {
-    changedTiles.forEach(tile => {
+function reflectChanges(event) {
+    event.changes.forEach(tile => {
         drawTile(tile.i, tile.j, tile.newState);
         drawTileBorder(tile.i, tile.j, tile.newState);
     });
-    drawPlayer(userPos);
     drawOuterBorders();
+    if (event.owner === window.username) {
+        document.getElementsByClassName("moves__count")[0].innerHTML = event.turns;
+        if (event.finish) {
+            alert("Молодец какой");
+        }
+    }
 }
 
 function drawAllTiles(map) {
@@ -140,6 +164,8 @@ function drawTile(i, j, state) {
         ctx.fillStyle = SEEN_COLOR;
     }
     ctx.fillRect(newX, newY, BLOCK_SIZE, BLOCK_SIZE);
+
+    state.players.forEach(player => drawPlayer(player));
 }
 
 function drawTileBorder(i, j, state) {
@@ -163,15 +189,17 @@ function drawTileBorder(i, j, state) {
     }
 }
 
-function drawPlayer(userPos) {
+function drawPlayer(player) {
     const deltaPlus = Math.floor((BLOCK_SIZE - PLAYER_SIZE) / 2);
-    const newX = OUTER_BORDER_SIZE + userPos.x * BLOCK_SIZE + deltaPlus;
-    const newY = OUTER_BORDER_SIZE + userPos.y * BLOCK_SIZE + deltaPlus;
+    const newX = OUTER_BORDER_SIZE + player.x * BLOCK_SIZE + deltaPlus;
+    const newY = OUTER_BORDER_SIZE + player.y * BLOCK_SIZE + deltaPlus;
 
     ctx.fillStyle = PLAYER_COLOR;
     ctx.fillRect(newX, newY, PLAYER_SIZE, PLAYER_SIZE);
-    playerCoordinates.x = newX;
-    playerCoordinates.y = newY;
+    if (player.username === username) {
+        playerCoordinates.x = newX;
+        playerCoordinates.y = newY;
+    }
 }
 
 function drawOuterBorders() {
@@ -248,15 +276,7 @@ function setEvents() {
 
     document.getElementById('login-button').onclick = authenticate('login', 'Login failed');
     document.getElementById('signup-button').onclick = authenticate('signup', 'Registration failed');
-    document.getElementById('logout-button').onclick = async event => {
-        const response = await fetch(`${API_HOST}/user/logout`, {
-            method: "POST",
-            credentials: "include"
-        });
-        if (response.ok) {
-            showPageLogin();
-        }
-    }
+    document.getElementById('logout-button').onclick = logout();
 }
 
 function authenticate(path, errorMessage) {
@@ -266,16 +286,43 @@ function authenticate(path, errorMessage) {
         const response = await fetch(`${API_HOST}/user/${path}`, {
             method: "POST",
             credentials: "include",
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', ...csrfHeaders},
             body: `{"username":"${username}","password":"${password}"}`,
         });
         if (response.ok) {
+            window.username = username;
+            await obtainCsrfToken();
             await loadGame();
             showPageGame();
         } else {
             document.getElementById('login-message').innerText = errorMessage;
         }
     }
+}
+
+function logout() {
+    return async () => {
+        const response = await fetch(`${API_HOST}/user/logout`, {
+            method: "POST",
+            credentials: "include",
+            headers: csrfHeaders
+        });
+        if (response.ok) {
+            await obtainCsrfToken();
+            showPageLogin();
+        }
+    }
+}
+
+async function obtainCsrfToken() {
+    const response = await fetch(`${API_HOST}/csrf`, {
+        method: "GET",
+        credentials: "include",
+        headers: csrfHeaders
+    });
+    csrf = await response.json();
+    csrfHeaders = {};
+    csrfHeaders[csrf.headerName] = csrf.token;
 }
 
 function showPageLogin() {

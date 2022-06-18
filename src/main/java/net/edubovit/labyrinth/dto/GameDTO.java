@@ -10,7 +10,7 @@ public record GameDTO(UUID id,
                       @JsonUnwrapped LabyrinthDTO map,
                       Coordinates playerCoordinates,
                       int turns,
-                      Boolean finish) {
+                      boolean finish) {
 
     @Override
     public String toString() {

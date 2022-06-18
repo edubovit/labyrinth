@@ -3,7 +3,7 @@ package net.edubovit.labyrinth.dto;
 import java.util.Collection;
 
 public record MovementResultDTO(Collection<CellChangeDTO> changes,
-                                Coordinates playerCoordinates,
+                                String owner,
                                 int turns,
                                 boolean finish) {
 
