@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,7 +65,7 @@ public class GameCachedRepository {
         try {
             var objectInputStream = new ObjectInputStream(new ByteArrayInputStream(gameBlob.getGameBlob()));
             return (Game) objectInputStream.readObject();
-        } catch (InvalidClassException e) {
+        } catch (ObjectStreamException e) {
             return null;
         }
     }
