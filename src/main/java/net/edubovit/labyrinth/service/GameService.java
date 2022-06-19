@@ -52,7 +52,16 @@ public class GameService {
                 .processor(processor)
                 .lastUsed(LocalDateTime.now())
                 .build();
-        userGameCachedRepository.deleteUserGame(username);
+        userGameCachedRepository.getGameByUsername(username)
+                .ifPresent(prevGame -> {
+                    var prevGameProcessor = prevGame.getProcessor();
+                    eventService.tilesChanged(prevGame.getId(), prevGameProcessor.leave(username));
+                    if (prevGameProcessor.playersCount() == 0) {
+                        userGameCachedRepository.deleteUserGame(username);
+                    } else {
+                        userGameCachedRepository.flushUserCache(username);
+                    }
+                });
         gameCache.save(game.getId(), game);
         userRepository.updateGameForUser(game.getId(), username);
         var response = new GameDTO(
@@ -73,7 +82,16 @@ public class GameService {
                         .orElseThrow(NotFoundException::new);
         var processor = game.getProcessor();
         eventService.tilesChanged(game.getId(), processor.join(username));
-        userGameCachedRepository.deleteUserGame(username);
+        userGameCachedRepository.getGameByUsername(username)
+                .ifPresent(prevGame -> {
+                    var prevGameProcessor = prevGame.getProcessor();
+                    eventService.tilesChanged(prevGame.getId(), prevGameProcessor.leave(username));
+                    if (prevGameProcessor.playersCount() == 0) {
+                        userGameCachedRepository.deleteUserGame(username);
+                    } else {
+                        userGameCachedRepository.flushUserCache(username);
+                    }
+                });
         userRepository.updateGameForUser(game.getId(), username);
         var response = new GameDTO(
                 game.getId(),

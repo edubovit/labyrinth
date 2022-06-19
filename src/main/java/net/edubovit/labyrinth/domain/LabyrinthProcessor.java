@@ -13,6 +13,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -57,6 +58,28 @@ public class LabyrinthProcessor implements Serializable {
                 username,
                 0,
                 finish(username));
+    }
+
+    public MovementResultDTO leave(String username) {
+        var playerOptional = playerByUsernameOptional(username);
+        if (playerOptional.isPresent()) {
+            var player = playerOptional.get();
+            players.remove(player);
+            return new MovementResultDTO(
+                    player.getSeenTiles()
+                            .stream()
+                            .map(tile -> new CellChangeDTO(tile, playersOnTile(tile)))
+                            .toList(),
+                    username,
+                    player.getTurns(),
+                    false);
+        } else {
+            return new MovementResultDTO(emptyList(), username, 0, false);
+        }
+    }
+
+    public int playersCount() {
+        return players.size();
     }
 
     public MovementResultDTO moveUp(String username) {
@@ -165,10 +188,14 @@ public class LabyrinthProcessor implements Serializable {
     }
 
     private Player playerByUsername(String username) {
+        return playerByUsernameOptional(username)
+                .orElseThrow(Exceptions.usernameNotFoundException(username));
+    }
+
+    private Optional<Player> playerByUsernameOptional(String username) {
         return players.stream()
                 .filter(p -> p.getUsername().equals(username))
-                .findAny()
-                .orElseThrow(Exceptions.usernameNotFoundException(username));
+                .findAny();
     }
 
     private Collection<Player> playersOnTile(Cell cell) {

@@ -42,4 +42,8 @@ public class UserGameCachedRepository {
                 });
     }
 
+    public void flushUserCache(String username) {
+        userGameCache.delete(username);
+    }
+
 }

@@ -24,7 +24,7 @@ let currentPage = 'login';
 
 let username;
 let gameId;
-let playerCoordinates;
+let playerCoordinates = {};
 
 let stompClient;
 let csrf;
@@ -208,7 +208,7 @@ function drawPlayer(player) {
 
     ctx.fillStyle = PLAYER_COLOR;
     ctx.fillRect(newX, newY, PLAYER_SIZE, PLAYER_SIZE);
-    if (player.username === username) {
+    if (player.username === window.username) {
         playerCoordinates.x = newX;
         playerCoordinates.y = newY;
     }
