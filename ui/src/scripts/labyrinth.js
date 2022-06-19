@@ -91,6 +91,18 @@ async function createGame(data) {
     renderGame(await response.json());
 }
 
+function join() {
+    return async () => {
+        const hostUsername = document.getElementById('join-to').value;
+        const response = await fetch(`${API_HOST}/game/join/${hostUsername}`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: csrfHeaders
+        });
+        renderGame(await response.json());
+    }
+}
+
 function doTheMove(direction) {
     stompClient.publish({
         destination: `/app/game/move/${direction}`
@@ -216,8 +228,15 @@ function drawOuterBorders() {
 }
 
 function setEvents() {
+    setMoveEvents(true);
+    setLevelButtonsEvents();
+    setAuthButtonsEvents();
+    setJoinButtonEvent();
+}
+
+function setMoveEvents(kbEnabled) {
     // kb move
-    window.onkeydown = event => {
+    window.onkeydown = kbEnabled ? event => {
         if (currentPage !== 'game') {
             return;
         }
@@ -244,8 +263,8 @@ function setEvents() {
                 break;
             default:
         }
-    }
-    if(detectMobile()) {
+    } : undefined;
+    if (detectMobile()) {
         // click move
         canvas.onclick = async event => {
             const offsetX = event.offsetX - playerCoordinates.x;
@@ -265,7 +284,9 @@ function setEvents() {
             }
         }
     }
+}
 
+function setLevelButtonsEvents() {
     // level buttons click
     const levels = document.getElementsByClassName('level')
     for (let i = 0; i < levels.length; i++) {
@@ -273,10 +294,19 @@ function setEvents() {
             await createGame(event.target.dataset.value)
         }
     }
+}
 
+function setAuthButtonsEvents() {
     document.getElementById('login-button').onclick = authenticate('login', 'Login failed');
     document.getElementById('signup-button').onclick = authenticate('signup', 'Registration failed');
     document.getElementById('logout-button').onclick = logout();
+}
+
+function setJoinButtonEvent() {
+    const joinToField = document.getElementById('join-to');
+    joinToField.onfocus = () => setMoveEvents(false);
+    joinToField.onblur = () => setMoveEvents(true);
+    document.getElementById('join-button').onclick = join();
 }
 
 function authenticate(path, errorMessage) {
