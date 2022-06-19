@@ -6,6 +6,8 @@ import net.edubovit.labyrinth.dto.LabyrinthDTO;
 import net.edubovit.labyrinth.dto.MovementResultDTO;
 import net.edubovit.labyrinth.exception.Exceptions;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serial;
@@ -24,6 +26,7 @@ import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+@Slf4j
 public class LabyrinthProcessor implements Serializable {
 
     private final Labyrinth labyrinth;
@@ -37,11 +40,15 @@ public class LabyrinthProcessor implements Serializable {
     public LabyrinthProcessor(int width, int height, long seed) {
         this.width = width;
         this.height = height;
+        long time = System.nanoTime();
         labyrinth = new Labyrinth(width, height, seed);
+        log.info("labyrinth initializing took {}us", (System.nanoTime() - time) / 1000);
     }
 
     public void generate() {
+        long time = System.nanoTime();
         labyrinth.generateWalls();
+        log.info("labyrinth generation took {}us", (System.nanoTime() - time) / 1000);
     }
 
     public MovementResultDTO join(String username) {
@@ -82,6 +89,10 @@ public class LabyrinthProcessor implements Serializable {
         return players.size();
     }
 
+    public Stream<String> playerNames() {
+        return players.stream().map(Player::getUsername);
+    }
+
     public MovementResultDTO moveUp(String username) {
         var player = playerByUsername(username);
         return move(player, player.getPosition().getUp());
@@ -105,11 +116,6 @@ public class LabyrinthProcessor implements Serializable {
     public boolean finish(String username) {
         var player = playerByUsername(username);
         return player.getPosition().getI() == 0 && player.getPosition().getJ() == 0;
-    }
-
-    public Coordinates playerCoordinates(String username) {
-        var player = playerByUsername(username);
-        return new Coordinates(player.getPosition().getI(), player.getPosition().getJ());
     }
 
     public int turns(String username) {

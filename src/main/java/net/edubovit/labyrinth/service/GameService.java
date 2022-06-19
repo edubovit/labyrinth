@@ -8,9 +8,6 @@ import net.edubovit.labyrinth.dto.GameDTO;
 import net.edubovit.labyrinth.dto.MovementResultDTO;
 import net.edubovit.labyrinth.exception.NotFoundException;
 import net.edubovit.labyrinth.repository.cached.GameCachedRepository;
-import net.edubovit.labyrinth.repository.cached.UserGameCachedRepository;
-import net.edubovit.labyrinth.repository.db.UserRepository;
-import net.edubovit.labyrinth.repository.memory.GameCache;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,18 +29,17 @@ public class GameService {
 
     private final GameCachedRepository gameCachedRepository;
 
-    private final GameCache gameCache;
-
-    private final UserRepository userRepository;
-
-    private final UserGameCachedRepository userGameCachedRepository;
-
     private final ApplicationProperties properties;
 
     @Transactional
     public GameDTO create(CreateGameRequestDTO request) {
-        log.info("creating game: {}", request);
         String username = sessionUtilService.getUsername();
+        log.info("creating new game for {}: {}", username, request);
+        gameCachedRepository.getByUsername(username)
+                .ifPresent(prevGame -> {
+                    eventService.tilesChanged(prevGame.getId(), prevGame.getProcessor().leave(username));
+                    gameCachedRepository.deleteGameIfAbandoned(prevGame);
+                });
         var processor = new LabyrinthProcessor(request.width(), request.height(), request.seed());
         processor.generate();
         processor.join(username);
@@ -52,22 +48,10 @@ public class GameService {
                 .processor(processor)
                 .lastUsed(LocalDateTime.now())
                 .build();
-        userGameCachedRepository.getGameByUsername(username)
-                .ifPresent(prevGame -> {
-                    var prevGameProcessor = prevGame.getProcessor();
-                    eventService.tilesChanged(prevGame.getId(), prevGameProcessor.leave(username));
-                    if (prevGameProcessor.playersCount() == 0) {
-                        userGameCachedRepository.deleteUserGame(username);
-                    } else {
-                        userGameCachedRepository.flushUserCache(username);
-                    }
-                });
-        gameCache.save(game.getId(), game);
-        userRepository.updateGameForUser(game.getId(), username);
+        gameCachedRepository.join(username, game);
         var response = new GameDTO(
                 game.getId(),
                 processor.buildLabyrinthDTO(),
-                processor.playerCoordinates(username),
                 processor.turns(username),
                 processor.finish(username));
         log.info("game created: {}", response);
@@ -78,25 +62,19 @@ public class GameService {
     public GameDTO join(String hostUsername) {
         String username = sessionUtilService.getUsername();
         log.info("{} joins game of {}", username, hostUsername);
-        var game = userGameCachedRepository.getGameByUsername(hostUsername)
+        var game = gameCachedRepository.getByUsername(hostUsername)
                         .orElseThrow(NotFoundException::new);
+        gameCachedRepository.getByUsername(username)
+                .ifPresent(prevGame -> {
+                    eventService.tilesChanged(prevGame.getId(), prevGame.getProcessor().leave(username));
+                    gameCachedRepository.deleteGameIfAbandoned(prevGame);
+                });
         var processor = game.getProcessor();
         eventService.tilesChanged(game.getId(), processor.join(username));
-        userGameCachedRepository.getGameByUsername(username)
-                .ifPresent(prevGame -> {
-                    var prevGameProcessor = prevGame.getProcessor();
-                    eventService.tilesChanged(prevGame.getId(), prevGameProcessor.leave(username));
-                    if (prevGameProcessor.playersCount() == 0) {
-                        userGameCachedRepository.deleteUserGame(username);
-                    } else {
-                        userGameCachedRepository.flushUserCache(username);
-                    }
-                });
-        userRepository.updateGameForUser(game.getId(), username);
+        gameCachedRepository.join(username, game);
         var response = new GameDTO(
                 game.getId(),
                 processor.buildLabyrinthDTO(),
-                processor.playerCoordinates(username),
                 processor.turns(username),
                 processor.finish(username));
         log.info("{} successfully joined game: {}", username, response);
@@ -107,13 +85,12 @@ public class GameService {
     public GameDTO getCurrent() {
         String username = sessionUtilService.getUsername();
         log.info("reading game for user {}", username);
-        var game = userGameCachedRepository.getGameByUsername(username)
+        var game = gameCachedRepository.getByUsername(username)
                 .orElseThrow(NotFoundException::new);
         var processor = game.getProcessor();
         var response =  new GameDTO(
                 game.getId(),
                 processor.buildLabyrinthDTO(),
-                processor.playerCoordinates(username),
                 processor.turns(username),
                 processor.finish(username));
         log.info("retrieved game: {}", response);
@@ -143,14 +120,14 @@ public class GameService {
     private void move(MovementDirection direction) {
         String username = sessionUtilService.getUsername();
         log.info("moving {} {}", username, direction.toString().toLowerCase());
-        var game = userGameCachedRepository.getGameByUsername(username)
+        var game = gameCachedRepository.getByUsername(username)
                 .orElseThrow(NotFoundException::new);
         game.setLastUsed(LocalDateTime.now());
         var processor = game.getProcessor();
-        if (processor.turns(username) % properties.getGameFlushPeriod() == 0) {
-            gameCachedRepository.flush(game);
-        }
         var response = direction.action.apply(processor, username);
+        if (processor.turns(username) % properties.getGameFlushPeriod() == 0) {
+            gameCachedRepository.persist(game);
+        }
         log.info("movement result: game {}, {}", game.getId(), response);
         eventService.tilesChanged(game.getId(), response);
     }
