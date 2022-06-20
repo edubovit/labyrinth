@@ -14,15 +14,14 @@ git checkout origin/"$REVISION"
 ./gradlew --no-daemon clean
 ./gradlew --no-daemon build
 sudo systemctl stop labyrinth.service
-rm -rf build/libs/labyrinth*-plain.jar
-cp -f build/libs/labyrinth*.jar "$BACKEND_DEPLOYMENT_LOCATION"/labyrinth.jar
+cp -f build/libs/labyrinth.jar "$BACKEND_DEPLOYMENT_LOCATION/labyrinth.jar"
 sudo systemctl start labyrinth.service
 
 cd ui
 rm -rf dist node_modules
 npm install
 npm run build
-rm -rf "$UI_DEPLOYMENT_LOCATION:?"/*
-cp -rf dist/. "$UI_DEPLOYMENT_LOCATION"/
+rm -rf "${UI_DEPLOYMENT_LOCATION:?}/*"
+cp -rf dist/. "$UI_DEPLOYMENT_LOCATION/"
 
 echo "Deployment successful!"

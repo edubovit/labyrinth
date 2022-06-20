@@ -34,4 +34,4 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd ${{ secrets.REPO_LOCATION }}
-            BACKEND_DEPLOYMENT_LOCATION=${{ secrets.BACKEND_DEPLOYMENT_LOCATION }} UI_DEPLOYMENT_LOCATION=${{ secrets.UI_DEPLOYMENT_LOCATION }} scripts/update-prod.sh
+            scripts/update-prod.sh
