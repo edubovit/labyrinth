@@ -34,4 +34,8 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd ${{ secrets.REPO_LOCATION }}
+            git reset HEAD --hard
+            git clean -fd
+            git fetch --all
+            git checkout origin/master
             scripts/update-prod.sh

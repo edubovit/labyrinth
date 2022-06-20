@@ -1,15 +1,7 @@
 #!/bin/bash -xeu
 
-REVISION=${REVISION:-master}
-REPO_LOCATION=${REPO_LOCATION:-$(pwd)}
-
 cd "${REPO_LOCATION:-$(pwd)}"
 source .env
-
-git reset HEAD --hard
-git clean -fd
-git fetch --all
-git checkout origin/"$REVISION"
 
 ./gradlew --no-daemon clean
 ./gradlew --no-daemon build
@@ -23,5 +15,8 @@ npm install
 npm run build
 rm -rf "${UI_DEPLOYMENT_LOCATION:?}/*"
 cp -rf dist/. "$UI_DEPLOYMENT_LOCATION/"
+
+curl "$PRODUCTION_HOST/api/actuator/health"
+curl "$PRODUCTION_HOST/"
 
 echo "Deployment successful!"
