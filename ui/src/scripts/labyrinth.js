@@ -16,7 +16,7 @@ const ENTER_COLOR = "#f00"
 const EXIT_COLOR = "#0f0"
 const PLAYER_COLOR = "#ff7700"
 
-const API_HOST = process.env.API_HOST;
+const API_HOST = process.env.API_HOST || 'http://localhost:8080';
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
