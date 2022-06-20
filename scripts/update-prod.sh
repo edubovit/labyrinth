@@ -13,7 +13,7 @@ cd ui
 rm -rf dist node_modules
 npm install
 npm run build
-rm -rf "${UI_DEPLOYMENT_LOCATION:?}/*"
+rm -rf "${UI_DEPLOYMENT_LOCATION:?}"/*
 cp -rf dist/. "$UI_DEPLOYMENT_LOCATION/"
 
 curl "$PRODUCTION_HOST/api/actuator/health"
