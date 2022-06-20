@@ -44,67 +44,62 @@ or using IntelliJ IDEA:
 
 1. Build backend JAR and place it where you're going to run it, e.g.
 
-
-    ./gradlew build
-    cp build/libs/labyrinth.jar /path/to/labyrinth/
+       ./gradlew build
+       cp build/libs/labyrinth.jar /path/to/labyrinth/
 
 2. Create `.env` file under `ui` folder and set `API_HOST` variable there. This variable targets the root of application backend, e.g.
 
-
-    cd ui
-    echo API_HOST=https://labyrinth.example.com/api > .env
+       cd ui
+       echo API_HOST=https://labyrinth.example.com/api > .env
 
 3. Build frontend in production mode and copy the result to the folder where you're going to serve static content, e.g.
 
-
-    npm run build 
-    cp -rf dist/. /path/to/labyrinth/labyrinth-ui/
+       npm run build 
+       cp -rf dist/. /path/to/labyrinth/labyrinth-ui/
 
 4. Configure `labyrinth.service` systemd unit. Take care of environment variables to point database location and credentials.
 
-
-    [Unit]
-    Description=Labyrinth
-    After=network-online.target
-    Wants=network-online.target
-    
-    [Service]
-    User=labyrinth
-    Restart=always
-    WorkingDirectory=/path/to/labyrinth
-    ExecStart=/opt/java/jdk-18.0.1.1/bin/java --enable-preview -Dspring.profiles.active=prod -jar /path/to/labyrinth/labyrinth.jar
-    Environment=POSTGRES_URL=jdbc:postgresql://localhost:5432/labyrinth
-    Environment=POSTGRES_USERNAME=postgres
-    Environment=POSTGRES_PASSWORD=postgres
-    
-    [Install]
-    WantedBy=multi-user.target
+       [Unit]
+       Description=Labyrinth
+       After=network-online.target
+       Wants=network-online.target
+       
+       [Service]
+       User=labyrinth
+       Restart=always
+       WorkingDirectory=/path/to/labyrinth
+       ExecStart=/opt/java/jdk-18.0.1.1/bin/java --enable-preview -Dspring.profiles.active=prod -jar /path/to/labyrinth/labyrinth.jar
+       Environment=POSTGRES_URL=jdbc:postgresql://localhost:5432/labyrinth
+       Environment=POSTGRES_USERNAME=postgres
+       Environment=POSTGRES_PASSWORD=postgres
+       
+       [Install]
+       WantedBy=multi-user.target
 
 5. Configure nginx:
 
-
-    server {
-        server_name labyrinth.example.com;
-        listen 443 ssl;
-        include "/etc/nginx/conf/labyrinth-ssl.conf";
-    
-        root /path/to/labyrinth/labyrinth-ui;
-    
-        location /api {
-            rewrite           /api/(.*)  /$1  break;
-            proxy_pass        http://localhost:8080;
-            proxy_set_header  Host       $host;
-            proxy_set_header  X-Real-IP  $remote_addr;
-        }
-    
-        location /api/ws {
-            rewrite           /api/ws     /ws  break;
-            proxy_pass        http://localhost:8080;
-            proxy_set_header  Host        $host;
-            proxy_set_header  X-Real-IP   $remote_addr;
-            proxy_set_header  Upgrade     $http_upgrade;
-            proxy_set_header  Connection  "Upgrade";
-        }
-    }
+       server {
+           server_name labyrinth.example.com;
+           listen 443 ssl;
+           include "/etc/nginx/conf/labyrinth-ssl.conf";
+       
+           root /path/to/labyrinth/labyrinth-ui;
+       
+           location /api {
+               rewrite           /api/(.*)  /$1  break;
+               proxy_pass        http://localhost:8080;
+               proxy_set_header  Host       $host;
+               proxy_set_header  X-Real-IP  $remote_addr;
+           }
+       
+           location /api/ws {
+               rewrite           /api/ws     /ws  break;
+               proxy_pass        http://localhost:8080;
+               proxy_set_header  Host        $host;
+               proxy_set_header  X-Real-IP   $remote_addr;
+               proxy_set_header  Upgrade     $http_upgrade;
+               proxy_set_header  Connection  "Upgrade";
+           }
+       }
 
 6. You're done! Now run new systemd service and nginx.
