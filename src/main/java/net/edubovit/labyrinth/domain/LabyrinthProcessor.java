@@ -1,7 +1,6 @@
 package net.edubovit.labyrinth.domain;
 
 import net.edubovit.labyrinth.dto.CellChangeDTO;
-import net.edubovit.labyrinth.dto.Coordinates;
 import net.edubovit.labyrinth.dto.LabyrinthDTO;
 import net.edubovit.labyrinth.dto.MovementResultDTO;
 import net.edubovit.labyrinth.exception.Exceptions;
@@ -58,13 +57,11 @@ public class LabyrinthProcessor implements Serializable {
         player.setSeenTiles(seenTiles);
         player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
         players.add(player);
-        return new MovementResultDTO(
+        return new MovementResultDTO(username, 0, finish(username),
                 seenTiles.stream()
                         .map(tile -> new CellChangeDTO(tile, playersOnTile(tile)))
-                        .toList(),
-                username,
-                0,
-                finish(username));
+                        .toList()
+        );
     }
 
     public MovementResultDTO leave(String username) {
@@ -72,16 +69,14 @@ public class LabyrinthProcessor implements Serializable {
         if (playerOptional.isPresent()) {
             var player = playerOptional.get();
             players.remove(player);
-            return new MovementResultDTO(
+            return new MovementResultDTO(username, player.getTurns(), false,
                     player.getSeenTiles()
                             .stream()
                             .map(tile -> new CellChangeDTO(tile, playersOnTile(tile)))
-                            .toList(),
-                    username,
-                    player.getTurns(),
-                    false);
+                            .toList()
+            );
         } else {
-            return new MovementResultDTO(emptyList(), username, 0, false);
+            return new MovementResultDTO(username, 0, false, emptyList());
         }
     }
 
@@ -128,7 +123,7 @@ public class LabyrinthProcessor implements Serializable {
 
     private MovementResultDTO move(Player player, Direction<?> direction) {
         if (direction.getWall().getState() == FINAL) {
-            return new MovementResultDTO(emptyList(), player.getUsername(), player.getTurns(), finish(player.getUsername()));
+            return new MovementResultDTO(player.getUsername(), player.getTurns(), finish(player.getUsername()), emptyList());
         }
         var prevPosition = player.getPosition();
         var nextPosition = direction.getCell();
@@ -139,11 +134,8 @@ public class LabyrinthProcessor implements Serializable {
         player.setPosition(nextPosition);
         player.setSeenTiles(nextSeenTiles);
         player.setTurns(player.getTurns() + 1);
-        return new MovementResultDTO(
-                changedTiles(prevPosition, nextPosition, prevSeenTiles, nextSeenTiles),
-                player.getUsername(),
-                player.getTurns(),
-                finish(player.getUsername()));
+        return new MovementResultDTO(player.getUsername(), player.getTurns(), finish(player.getUsername()),
+                changedTiles(prevPosition, nextPosition, prevSeenTiles, nextSeenTiles));
     }
 
     private Collection<Cell> seenTiles(Cell position) {
