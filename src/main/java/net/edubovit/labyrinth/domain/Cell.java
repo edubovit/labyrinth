@@ -1,4 +1,4 @@
-package net.edubovit.labyrinth.entity;
+package net.edubovit.labyrinth.domain;
 
 import net.edubovit.labyrinth.util.ReflectionUtils;
 
@@ -12,9 +12,9 @@ import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.io.Serializable;
 
-import static net.edubovit.labyrinth.entity.Visibility.REVEALED;
-import static net.edubovit.labyrinth.entity.Visibility.SEEN;
-import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
+import static net.edubovit.labyrinth.domain.Visibility.REVEALED;
+import static net.edubovit.labyrinth.domain.Visibility.SEEN;
+import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
 
 @Getter
 @Setter

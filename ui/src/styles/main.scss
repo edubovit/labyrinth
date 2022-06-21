@@ -1,18 +1,45 @@
-body {
-    /*overflow-y: hidden;*/
+* {
+    font-family: sans-serif;
+}
+
+.input-text {
+    height: 30px;
+    padding: 0 10px;
+    font-size: 16px;
+    border: 1px solid gray;
+    border-radius: 5px;
+    outline: none;
+    text-align: center;
+}
+
+.input-text:focus {
+    border: 1px solid black;
+    outline: 1px solid black;
+}
+
+.button {
+    display: inline-block;
+    background-color: #fff2cc;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border-radius: 5px;
+    cursor: default;
+}
+
+.button:hover {
+    background-color: sandybrown;
+}
+
+.bottom-line {
+    margin: 10px;
 }
 
 .moves {
     display: flex;
-    font-size: 20px;
 }
 
 .moves .moves__count{
     font-weight: bold;
-}
-
-.levels .level{
-    font-size:18px;
 }
 
 #page-login {
@@ -23,6 +50,35 @@ body {
     display: none;
 }
 
+#signup-button, #login-button {
+    width: 30%;
+}
+
 #login-message {
     color: red;
+}
+
+.page-login-container {
+    width: 80%;
+    min-width: 250px;
+    max-width: 300px;
+    margin: 25vh auto;
+    padding: 20px;
+    border: 1px solid lightgray;
+    border-radius: 10px;
+}
+
+.page-login-field {
+    width: 100%;
+    text-align: center;
+    margin: 5px 0;
+}
+
+#username, #password {
+    width: 80%;
+}
+
+.page-login-buttons {
+    text-align: center;
+    margin: 10px 0;
 }

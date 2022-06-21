@@ -1,4 +1,4 @@
-package net.edubovit.labyrinth.entity;
+package net.edubovit.labyrinth.domain;
 
 import net.edubovit.labyrinth.util.ReflectionUtils;
 
@@ -13,9 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static net.edubovit.labyrinth.entity.Wall.State.ABSENT;
-import static net.edubovit.labyrinth.entity.Wall.State.FINAL;
-import static net.edubovit.labyrinth.entity.Wall.State.PLAN;
+import static net.edubovit.labyrinth.domain.Wall.State.ABSENT;
+import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
+import static net.edubovit.labyrinth.domain.Wall.State.PLAN;
 
 public class Labyrinth implements Serializable {
 

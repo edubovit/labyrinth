@@ -1,6 +1,5 @@
-package net.edubovit.labyrinth.web;
+package net.edubovit.labyrinth.web.rest;
 
-import net.edubovit.labyrinth.config.URIPaths;
 import net.edubovit.labyrinth.config.security.PreAuthorizeAnonymous;
 import net.edubovit.labyrinth.config.security.PreAuthorizeUser;
 import net.edubovit.labyrinth.dto.UserCredentialsDTO;
@@ -17,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping(URIPaths.ROOT_USER)
+@RequestMapping("user")
 @RequiredArgsConstructor
 public class UserController {
 

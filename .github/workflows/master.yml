@@ -34,4 +34,8 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd ${{ secrets.REPO_LOCATION }}
-            BACKEND_DEPLOYMENT_LOCATION=${{ secrets.BACKEND_DEPLOYMENT_LOCATION }} UI_DEPLOYMENT_LOCATION=${{ secrets.UI_DEPLOYMENT_LOCATION }} scripts/update-prod.sh
+            git reset HEAD --hard
+            git clean -fd
+            git fetch --all
+            git checkout origin/master
+            scripts/update-prod.sh
