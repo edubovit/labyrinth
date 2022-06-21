@@ -202,11 +202,12 @@ function drawTileBorder(i, j, state) {
 }
 
 function drawPlayer(player) {
+    const playerColor = (Math.abs(hashCode(player.username)) % 16777216).toString(16)
     const deltaPlus = Math.floor((BLOCK_SIZE - PLAYER_SIZE) / 2);
     const newX = OUTER_BORDER_SIZE + player.x * BLOCK_SIZE + deltaPlus;
     const newY = OUTER_BORDER_SIZE + player.y * BLOCK_SIZE + deltaPlus;
 
-    ctx.fillStyle = PLAYER_COLOR;
+    ctx.fillStyle = `#${playerColor}`;
     ctx.fillRect(newX, newY, PLAYER_SIZE, PLAYER_SIZE);
     if (player.username === window.username) {
         playerCoordinates.x = newX;
@@ -382,4 +383,8 @@ function detectMobile() {
     return toMatch.some((toMatchItem) => {
         return navigator.userAgent.match(toMatchItem);
     });
+}
+
+hashCode = function(s){
+  return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
 }

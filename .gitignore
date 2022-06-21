@@ -38,4 +38,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### secrets and local ###
 .env
+application-local.yaml
