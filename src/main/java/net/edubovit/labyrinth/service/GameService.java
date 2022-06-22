@@ -2,7 +2,6 @@ package net.edubovit.labyrinth.service;
 
 import net.edubovit.labyrinth.config.properties.ApplicationProperties;
 import net.edubovit.labyrinth.domain.Game;
-import net.edubovit.labyrinth.domain.LabyrinthProcessor;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
 import net.edubovit.labyrinth.dto.GameDTO;
 import net.edubovit.labyrinth.dto.MovementResultDTO;
@@ -14,8 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.function.BiFunction;
 
 @Service
@@ -37,23 +34,14 @@ public class GameService {
         log.info("creating new game for {}: {}", username, request);
         gameCachedRepository.getByUsername(username)
                 .ifPresent(prevGame -> {
-                    eventService.tilesChanged(prevGame.getId(), prevGame.getProcessor().leave(username));
+                    eventService.tilesChanged(prevGame.getId(), prevGame.leave(username));
                     gameCachedRepository.deleteGameIfAbandoned(prevGame);
                 });
-        var processor = new LabyrinthProcessor(request.width(), request.height(), request.seed());
-        processor.generate();
-        processor.join(username);
-        var game = Game.builder()
-                .id(UUID.randomUUID())
-                .processor(processor)
-                .lastUsed(LocalDateTime.now())
-                .build();
+        var game = new Game(request.width(), request.height(), request.seed());
+        game.generate();
+        game.join(username);
         gameCachedRepository.join(username, game);
-        var response = new GameDTO(
-                game.getId(),
-                processor.buildLabyrinthDTO(),
-                processor.turns(username),
-                processor.finish(username));
+        var response = new GameDTO(game, username);
         log.info("game created: {}", response);
         return response;
     }
@@ -66,17 +54,12 @@ public class GameService {
                         .orElseThrow(NotFoundException::new);
         gameCachedRepository.getByUsername(username)
                 .ifPresent(prevGame -> {
-                    eventService.tilesChanged(prevGame.getId(), prevGame.getProcessor().leave(username));
+                    eventService.tilesChanged(prevGame.getId(), prevGame.leave(username));
                     gameCachedRepository.deleteGameIfAbandoned(prevGame);
                 });
-        var processor = game.getProcessor();
-        eventService.tilesChanged(game.getId(), processor.join(username));
+        eventService.tilesChanged(game.getId(), game.join(username));
         gameCachedRepository.join(username, game);
-        var response = new GameDTO(
-                game.getId(),
-                processor.buildLabyrinthDTO(),
-                processor.turns(username),
-                processor.finish(username));
+        var response = new GameDTO(game, username);
         log.info("{} successfully joined game: {}", username, response);
         return response;
     }
@@ -87,12 +70,7 @@ public class GameService {
         log.info("reading game for user {}", username);
         var game = gameCachedRepository.getByUsername(username)
                 .orElseThrow(NotFoundException::new);
-        var processor = game.getProcessor();
-        var response =  new GameDTO(
-                game.getId(),
-                processor.buildLabyrinthDTO(),
-                processor.turns(username),
-                processor.finish(username));
+        var response =  new GameDTO(game, username);
         log.info("retrieved game: {}", response);
         return response;
     }
@@ -122,10 +100,8 @@ public class GameService {
         log.info("moving {} {}", username, direction.toString().toLowerCase());
         var game = gameCachedRepository.getByUsername(username)
                 .orElseThrow(NotFoundException::new);
-        game.setLastUsed(LocalDateTime.now());
-        var processor = game.getProcessor();
-        var response = direction.action.apply(processor, username);
-        if (processor.turns(username) % properties.getGameFlushPeriod() == 0) {
+        var response = direction.action.apply(game, username);
+        if (game.turns(username) % properties.getGameFlushPeriod() == 0) {
             gameCachedRepository.persist(game);
         }
         log.info("movement result: game {}, {}", game.getId(), response);
@@ -134,12 +110,12 @@ public class GameService {
 
     @RequiredArgsConstructor
     private enum MovementDirection {
-        UP(LabyrinthProcessor::moveUp),
-        DOWN(LabyrinthProcessor::moveDown),
-        LEFT(LabyrinthProcessor::moveLeft),
-        RIGHT(LabyrinthProcessor::moveRight);
+        UP(Game::moveUp),
+        DOWN(Game::moveDown),
+        LEFT(Game::moveLeft),
+        RIGHT(Game::moveRight);
 
-        final BiFunction<LabyrinthProcessor, String, MovementResultDTO> action;
+        final BiFunction<Game, String, MovementResultDTO> action;
     }
 
 }

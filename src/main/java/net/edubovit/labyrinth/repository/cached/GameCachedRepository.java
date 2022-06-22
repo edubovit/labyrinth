@@ -58,15 +58,13 @@ public class GameCachedRepository {
     }
 
     public void deleteGameIfAbandoned(Game game) {
-        if (game.getProcessor().playersCount() == 0) {
+        if (game.playersCount() == 0) {
             gameRepository.deleteById(game.getId());
         }
     }
 
     private void populateCaches(Game game) {
-        game.getProcessor()
-                .playerNames()
-                .forEach(username -> gamesByUsername.put(username, game));
+        game.playerNames().forEach(username -> gamesByUsername.put(username, game));
     }
 
     @SneakyThrows
@@ -81,6 +79,7 @@ public class GameCachedRepository {
         return GameBlob.builder()
                 .id(game.getId())
                 .gameBlob(gameBlob)
+                .lastUsed(game.getLastUsed())
                 .build();
     }
 
