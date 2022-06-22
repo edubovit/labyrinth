@@ -2,7 +2,7 @@ package net.edubovit.labyrinth.domain;
 
 import net.edubovit.labyrinth.dto.CellChangeDTO;
 import net.edubovit.labyrinth.dto.LabyrinthDTO;
-import net.edubovit.labyrinth.dto.MovementResultDTO;
+import net.edubovit.labyrinth.dto.GameChangedEvent;
 import net.edubovit.labyrinth.exception.Exceptions;
 
 import lombok.Getter;
@@ -66,7 +66,7 @@ public class Game implements Serializable {
         return new LabyrinthDTO(labyrinth, players);
     }
 
-    public MovementResultDTO join(String username) {
+    public GameChangedEvent join(String username) {
         lastUsed = LocalDateTime.now();
         var player = new Player(username);
         player.setPosition(labyrinth.getCell(width - 1, height - 1));
@@ -74,27 +74,27 @@ public class Game implements Serializable {
         player.setSeenTiles(seenTiles);
         player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
         players.add(player);
-        return new MovementResultDTO(username, 0, finish(username),
+        return new GameChangedEvent(username, 0, finish(username),
                 seenTiles.stream()
                         .map(tile -> new CellChangeDTO(tile, playersOnTile(tile)))
                         .toList()
         );
     }
 
-    public MovementResultDTO leave(String username) {
+    public GameChangedEvent leave(String username) {
         var playerOptional = playerByUsernameOptional(username);
         if (playerOptional.isPresent()) {
             lastUsed = LocalDateTime.now();
             var player = playerOptional.get();
             players.remove(player);
-            return new MovementResultDTO(username, player.getTurns(), false,
+            return new GameChangedEvent(username, player.getTurns(), false,
                     player.getSeenTiles()
                             .stream()
                             .map(tile -> new CellChangeDTO(tile, playersOnTile(tile)))
                             .toList()
             );
         } else {
-            return new MovementResultDTO(username, 0, false, emptyList());
+            return new GameChangedEvent(username, 0, false, emptyList());
         }
     }
 
@@ -115,29 +115,29 @@ public class Game implements Serializable {
         return playerByUsername(username).getTurns();
     }
 
-    public MovementResultDTO moveUp(String username) {
+    public GameChangedEvent moveUp(String username) {
         var player = playerByUsername(username);
         return move(player, player.getPosition().getUp());
     }
 
-    public MovementResultDTO moveDown(String username) {
+    public GameChangedEvent moveDown(String username) {
         var player = playerByUsername(username);
         return move(player, player.getPosition().getDown());
     }
 
-    public MovementResultDTO moveLeft(String username) {
+    public GameChangedEvent moveLeft(String username) {
         var player = playerByUsername(username);
         return move(player, player.getPosition().getLeft());
     }
 
-    public MovementResultDTO moveRight(String username) {
+    public GameChangedEvent moveRight(String username) {
         var player = playerByUsername(username);
         return move(player, player.getPosition().getRight());
     }
 
-    private MovementResultDTO move(Player player, Direction<?> direction) {
+    private GameChangedEvent move(Player player, Direction<?> direction) {
         if (direction.getWall().getState() == FINAL) {
-            return new MovementResultDTO(player.getUsername(), player.getTurns(), finish(player.getUsername()), emptyList());
+            return new GameChangedEvent(player.getUsername(), player.getTurns(), finish(player.getUsername()), emptyList());
         }
         lastUsed = LocalDateTime.now();
         var prevPosition = player.getPosition();
@@ -149,7 +149,7 @@ public class Game implements Serializable {
         player.setPosition(nextPosition);
         player.setSeenTiles(nextSeenTiles);
         player.setTurns(player.getTurns() + 1);
-        return new MovementResultDTO(player.getUsername(), player.getTurns(), finish(player.getUsername()),
+        return new GameChangedEvent(player.getUsername(), player.getTurns(), finish(player.getUsername()),
                 changedTiles(prevPosition, nextPosition, prevSeenTiles, nextSeenTiles));
     }
 

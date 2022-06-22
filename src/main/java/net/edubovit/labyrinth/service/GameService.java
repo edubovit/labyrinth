@@ -4,7 +4,7 @@ import net.edubovit.labyrinth.config.properties.ApplicationProperties;
 import net.edubovit.labyrinth.domain.Game;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
 import net.edubovit.labyrinth.dto.GameDTO;
-import net.edubovit.labyrinth.dto.MovementResultDTO;
+import net.edubovit.labyrinth.dto.GameChangedEvent;
 import net.edubovit.labyrinth.exception.NotFoundException;
 import net.edubovit.labyrinth.repository.cached.GameCachedRepository;
 
@@ -115,7 +115,7 @@ public class GameService {
         LEFT(Game::moveLeft),
         RIGHT(Game::moveRight);
 
-        final BiFunction<Game, String, MovementResultDTO> action;
+        final BiFunction<Game, String, GameChangedEvent> action;
     }
 
 }
