@@ -1,12 +1,9 @@
 package net.edubovit.labyrinth.domain;
 
-import net.edubovit.labyrinth.util.ReflectionUtils;
-
 import lombok.Getter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -42,15 +39,6 @@ public class Labyrinth implements Serializable {
         availableDigDirections.add(new Way(matrix[height - 1][width - 1], DigDirection.UP));
     }
 
-    private Labyrinth(int width, int height) {
-        this.width = width;
-        this.height = height;
-        matrix = new Cell[height][width];
-        initializeField();
-        random = null;
-        availableDigDirections = null;
-    }
-
     public Cell getCell(int x, int y) {
         return matrix[y][x];
     }
@@ -69,33 +57,54 @@ public class Labyrinth implements Serializable {
             for (int j = 0; j < width; j++) {
                 var cell = matrix[i][j];
                 if (i == 0) {
-                    cell.getUp().setWall(new HorizontalWall(null, cell, FINAL));
+                    cell.getUp().setWall(new HorizontalWall(FINAL));
                 } else {
-                    var up = matrix[i - 1][j];
-                    cell.getUp().setCell(up);
+                    cell.getUp().setCell(matrix[i - 1][j]);
                     cell.getUp().setWall(cell.getUp().getCell().getDown().getWall());
                 }
                 if (i == height - 1) {
-                    cell.getDown().setWall(new HorizontalWall(cell, null, FINAL));
+                    cell.getDown().setWall(new HorizontalWall(FINAL));
                 } else {
-                    var down = matrix[i + 1][j];
-                    cell.getDown().setCell(down);
-                    cell.getDown().setWall(new HorizontalWall(cell, down, ABSENT));
+                    cell.getDown().setCell(matrix[i + 1][j]);
+                    cell.getDown().setWall(new HorizontalWall());
                 }
                 if (j == 0) {
-                    cell.getLeft().setWall(new VerticalWall(null, cell, FINAL));
+                    cell.getLeft().setWall(new VerticalWall(FINAL));
                 } else {
-                    var left = matrix[i][j - 1];
-                    cell.getLeft().setCell(left);
+                    cell.getLeft().setCell(matrix[i][j - 1]);
                     cell.getLeft().setWall(cell.getLeft().getCell().getRight().getWall());
                 }
                 if (j == width - 1) {
-                    cell.getRight().setWall(new VerticalWall(cell, null, FINAL));
+                    cell.getRight().setWall(new VerticalWall(FINAL));
                 } else {
-                    var right = matrix[i][j + 1];
-                    cell.getRight().setCell(right);
-                    cell.getRight().setWall(new VerticalWall(cell, right, ABSENT));
+                    cell.getRight().setCell(matrix[i][j + 1]);
+                    cell.getRight().setWall(new VerticalWall());
                 }
+            }
+        }
+        resolveMatrixLinks();
+    }
+
+    private void resolveMatrixLinks() {
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                var cell = matrix[i][j];
+                var up = i > 0 ? matrix[i - 1][j] : null;
+                var down = i < height - 1 ? matrix[i + 1][j] : null;
+                var left = j > 0 ? matrix[i][j - 1] : null;
+                var right = j < width - 1 ? matrix[i][j + 1] : null;
+                cell.getUp().setCell(up);
+                cell.getUp().getWall().setUp(up);
+                cell.getUp().getWall().setDown(cell);
+                cell.getDown().setCell(down);
+                cell.getDown().getWall().setDown(down);
+                cell.getDown().getWall().setUp(cell);
+                cell.getLeft().setCell(left);
+                cell.getLeft().getWall().setLeft(left);
+                cell.getLeft().getWall().setRight(cell);
+                cell.getRight().setCell(right);
+                cell.getRight().getWall().setRight(right);
+                cell.getRight().getWall().setLeft(cell);
             }
         }
     }
@@ -188,30 +197,9 @@ public class Labyrinth implements Serializable {
     }
 
     @Serial
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.writeInt(width);
-        out.writeInt(height);
-        for (var row : matrix) {
-            for (var cell : row) {
-                out.writeByte(cell.tyByteState());
-            }
-        }
-    }
-
-    @Serial
-    private void readObject(ObjectInputStream in) throws IOException, NoSuchFieldException, IllegalAccessException {
-        int width = in.readInt();
-        int height = in.readInt();
-        var replacement = new Labyrinth(width, height);
-        replacement.initializeField();
-        ReflectionUtils.setInt("width", this, width);
-        ReflectionUtils.setInt("height", this, height);
-        for (int i = 0; i < replacement.matrix.length; i++) {
-            for (int j = 0; j < replacement.matrix[i].length; j++) {
-                replacement.matrix[i][j].loadByteState(in.readByte());
-            }
-        }
-        ReflectionUtils.setObject("matrix", this, replacement.matrix);
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        resolveMatrixLinks();
     }
 
     private record Way(Cell next, DigDirection to) {

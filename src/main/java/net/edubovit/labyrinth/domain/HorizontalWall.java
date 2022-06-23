@@ -1,17 +1,21 @@
 package net.edubovit.labyrinth.domain;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter(AccessLevel.PACKAGE)
 public final class HorizontalWall extends Wall {
 
-    private final Cell up;
-    private final Cell down;
+    private transient Cell up;
+    private transient Cell down;
 
-    public HorizontalWall(Cell up, Cell down, State state) {
+    public HorizontalWall() {
+    }
+
+    public HorizontalWall(State state) {
         super(state);
-        this.up = up;
-        this.down = down;
     }
 
 }

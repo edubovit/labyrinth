@@ -1,16 +1,13 @@
 package net.edubovit.labyrinth.domain;
 
 import net.edubovit.labyrinth.dto.CellChangeDTO;
-import net.edubovit.labyrinth.dto.LabyrinthDTO;
 import net.edubovit.labyrinth.dto.GameChangedEvent;
+import net.edubovit.labyrinth.dto.LabyrinthDTO;
 import net.edubovit.labyrinth.exception.Exceptions;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,8 +19,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static net.edubovit.labyrinth.config.Defaults.VIEW_DISTANCE;
-import static net.edubovit.labyrinth.domain.Visibility.REVEALED;
-import static net.edubovit.labyrinth.domain.Visibility.SEEN;
 import static net.edubovit.labyrinth.domain.Wall.State.FINAL;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -34,21 +29,18 @@ public class Game implements Serializable {
     @Getter
     private final UUID id;
 
-    private final int width;
-
-    private final int height;
-
     private final Labyrinth labyrinth;
 
     private final List<Player> players = new ArrayList<>();
+
+    private final VisibilityMatrix visibilityMatrix;
 
     @Getter
     private LocalDateTime lastUsed;
 
     public Game(int width, int height, long seed) {
         id = UUID.randomUUID();
-        this.width = width;
-        this.height = height;
+        visibilityMatrix = new VisibilityMatrix(width, height);
         lastUsed = LocalDateTime.now();
 
         long time = System.nanoTime();
@@ -63,22 +55,17 @@ public class Game implements Serializable {
     }
 
     public LabyrinthDTO buildLabyrinthDTO() {
-        return new LabyrinthDTO(labyrinth, players);
+        return new LabyrinthDTO(labyrinth, players, visibilityMatrix);
     }
 
     public GameChangedEvent join(String username) {
         lastUsed = LocalDateTime.now();
         var player = new Player(username);
-        player.setPosition(labyrinth.getCell(width - 1, height - 1));
+        player.setPosition(labyrinth.getCell(labyrinth.getWidth() - 1, labyrinth.getHeight() - 1));
         var seenTiles = seenTiles(player.getPosition());
-        player.setSeenTiles(seenTiles);
-        player.getSeenTiles().forEach(cell -> cell.setVisibility(SEEN));
+        visibilityMatrix.setPlayerVision(player, seenTiles);
         players.add(player);
-        return new GameChangedEvent(username, 0, finish(username),
-                seenTiles.stream()
-                        .map(tile -> new CellChangeDTO(tile, playersOnTile(tile)))
-                        .toList()
-        );
+        return new GameChangedEvent(username, 0, finish(username), buildCellChangesDTO(seenTiles));
     }
 
     public GameChangedEvent leave(String username) {
@@ -87,12 +74,9 @@ public class Game implements Serializable {
             lastUsed = LocalDateTime.now();
             var player = playerOptional.get();
             players.remove(player);
-            return new GameChangedEvent(username, player.getTurns(), false,
-                    player.getSeenTiles()
-                            .stream()
-                            .map(tile -> new CellChangeDTO(tile, playersOnTile(tile)))
-                            .toList()
-            );
+            var changedTiles = buildCellChangesDTO(visibilityMatrix.getPlayerVision(player));
+            visibilityMatrix.setPlayerVision(player, emptyList());
+            return new GameChangedEvent(username, player.getTurns(), false, changedTiles);
         } else {
             return new GameChangedEvent(username, 0, false, emptyList());
         }
@@ -107,8 +91,7 @@ public class Game implements Serializable {
     }
 
     public boolean finish(String username) {
-        var player = playerByUsername(username);
-        return player.getPosition().getI() == 0 && player.getPosition().getJ() == 0;
+        return isFinished(playerByUsername(username));
     }
 
     public int turns(String username) {
@@ -140,17 +123,17 @@ public class Game implements Serializable {
             return new GameChangedEvent(player.getUsername(), player.getTurns(), finish(player.getUsername()), emptyList());
         }
         lastUsed = LocalDateTime.now();
-        var prevPosition = player.getPosition();
-        var nextPosition = direction.getCell();
-        var prevSeenTiles = player.getSeenTiles();
-        var nextSeenTiles = seenTiles(nextPosition);
-        prevSeenTiles.forEach(cell -> cell.setVisibility(REVEALED));
-        nextSeenTiles.forEach(cell -> cell.setVisibility(SEEN));
-        player.setPosition(nextPosition);
-        player.setSeenTiles(nextSeenTiles);
+        var prevSeenTiles = List.copyOf(visibilityMatrix.getPlayerVision(player));
+        player.setPosition(direction.getCell());
+        var nextSeenTiles = seenTiles(player.getPosition());
+        visibilityMatrix.setPlayerVision(player, nextSeenTiles);
+        var changedTiles = Stream.of(prevSeenTiles, nextSeenTiles)
+                .flatMap(Collection::stream)
+                .distinct()
+                .map(this::cellToCellChangeDTO)
+                .toList();
         player.setTurns(player.getTurns() + 1);
-        return new GameChangedEvent(player.getUsername(), player.getTurns(), finish(player.getUsername()),
-                changedTiles(prevPosition, nextPosition, prevSeenTiles, nextSeenTiles));
+        return new GameChangedEvent(player.getUsername(), player.getTurns(), isFinished(player), changedTiles);
     }
 
     private Collection<Cell> seenTiles(Cell position) {
@@ -181,23 +164,18 @@ public class Game implements Serializable {
         return result;
     }
 
-    private Collection<CellChangeDTO> changedTiles(Cell prevPosition, Cell nextPosition,
-                                                   Collection<Cell> prevSeenTiles, Collection<Cell> nextSeenTiles) {
-        var changedTiles = new ArrayList<>(prevSeenTiles);
-        nextSeenTiles.forEach(tile -> {
-            if (!changedTiles.remove(tile)) {
-                changedTiles.add(tile);
-            }
-        });
-        if (!changedTiles.contains(prevPosition)) {
-            changedTiles.add(prevPosition);
-        }
-        if (!changedTiles.contains(nextPosition)) {
-            changedTiles.add(nextPosition);
-        }
-        return changedTiles.stream()
-                .map(tile -> new CellChangeDTO(tile, playersOnTile(tile)))
+    private boolean isFinished(Player player) {
+        return player.getPosition().getI() == 0 && player.getPosition().getJ() == 0;
+    }
+
+    private Collection<CellChangeDTO> buildCellChangesDTO(Collection<Cell> cells) {
+        return cells.stream()
+                .map(this::cellToCellChangeDTO)
                 .toList();
+    }
+
+    private CellChangeDTO cellToCellChangeDTO(Cell cell) {
+        return new CellChangeDTO(cell, playersOnTile(cell), visibilityMatrix.getVisibility(cell));
     }
 
     private Player playerByUsername(String username) {
@@ -215,12 +193,6 @@ public class Game implements Serializable {
         return players.stream()
                 .filter(p -> p.getPosition() == cell)
                 .toList();
-    }
-
-    @Serial
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        players.forEach(player -> player.postDeserialize(labyrinth.getMatrix()));
     }
 
 }

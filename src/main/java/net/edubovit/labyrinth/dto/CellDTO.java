@@ -16,24 +16,13 @@ public record CellDTO(boolean wallUp,
                       Visibility visibility,
                       Collection<PlayerDTO> players) {
 
-    public CellDTO(Cell cell) {
+    public CellDTO(Cell cell, Collection<Player> players, Visibility visibility) {
         this(
                 cell.getUp().getWall().getState() == FINAL,
                 cell.getDown().getWall().getState() == FINAL,
                 cell.getLeft().getWall().getState() == FINAL,
                 cell.getRight().getWall().getState() == FINAL,
-                cell.getVisibility(),
-                new ArrayList<>(0)
-        );
-    }
-
-    public CellDTO(Cell cell, Collection<Player> players) {
-        this(
-                cell.getUp().getWall().getState() == FINAL,
-                cell.getDown().getWall().getState() == FINAL,
-                cell.getLeft().getWall().getState() == FINAL,
-                cell.getRight().getWall().getState() == FINAL,
-                cell.getVisibility(),
+                visibility,
                 players.stream().map(PlayerDTO::new).toList()
         );
     }

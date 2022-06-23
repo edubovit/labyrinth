@@ -11,6 +11,10 @@ public abstract sealed class Wall implements Serializable permits HorizontalWall
 
     private State state;
 
+    protected Wall() {
+        state = State.ABSENT;
+    }
+
     protected Wall(State state) {
         this.state = state;
     }

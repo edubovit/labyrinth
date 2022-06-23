@@ -49,7 +49,7 @@ public class GameCachedRepository {
 
     public void persist(Game game) {
         var gameBlob = serialize(game);
-        gameRepository.insert(gameBlob.getId(), gameBlob.getGameBlob());
+        gameRepository.insert(gameBlob.getId(), gameBlob.getGameBlob(), gameBlob.getLastUsed());
     }
 
     public void join(String username, Game game) {

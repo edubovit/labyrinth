@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Setter
 public class Direction<ORIENTATION extends Wall> implements Serializable {
 
-    private Cell cell;
+    private transient Cell cell;
     private ORIENTATION wall;
 
 }

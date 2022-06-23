@@ -2,6 +2,7 @@ package net.edubovit.labyrinth.dto;
 
 import net.edubovit.labyrinth.domain.Cell;
 import net.edubovit.labyrinth.domain.Player;
+import net.edubovit.labyrinth.domain.Visibility;
 
 import java.util.Collection;
 
@@ -9,8 +10,8 @@ import static java.util.stream.Collectors.joining;
 
 public record CellChangeDTO(int i, int j, CellDTO newState) {
 
-    public CellChangeDTO(Cell cell, Collection<Player> players) {
-        this(cell.getI(), cell.getJ(), new CellDTO(cell, players));
+    public CellChangeDTO(Cell cell, Collection<Player> players, Visibility visibility) {
+        this(cell.getI(), cell.getJ(), new CellDTO(cell, players, visibility));
     }
 
     @Override
