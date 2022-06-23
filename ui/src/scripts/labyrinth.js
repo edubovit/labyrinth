@@ -25,6 +25,7 @@ let currentPage = 'login';
 
 let gameId;
 let me;
+let players;
 
 let stompClient;
 let csrf;
@@ -111,6 +112,12 @@ function doTheMove(direction) {
 
 function renderGame(game) {
     gameId = game.id;
+    if (players) {
+        Object.entries(players)
+            .map(e => e[1])
+            .forEach(player => player.nameplate.remove());
+    }
+    players = {};
     canvas.width = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map[0].length;
     canvas.height = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map.length;
     document.getElementsByClassName("moves__count")[0].innerHTML = game.turns;
@@ -122,11 +129,15 @@ function renderGame(game) {
         brokerURL: `${API_HOST.replace('http', 'ws')}/ws`,
         connectHeaders: csrfHeaders,
         reconnectDelay: 5000,
-        onConnect: function (frame) {
-            const subscription = stompClient.subscribe(`/topic/game/${gameId}`, function (message) {
+        onConnect: () => {
+            stompClient.subscribe(`/topic/game/${gameId}/tiles`, (message) => {
                 const payload = JSON.parse(message.body);
                 reflectChanges(payload);
-            })
+            });
+            stompClient.subscribe(`/topic/game/${gameId}/leave`, (message) => {
+                const payload = JSON.parse(message.body);
+                players[payload.username].nameplate.remove();
+            });
         }
     });
     stompClient.activate();
@@ -208,10 +219,14 @@ function drawPlayer(player) {
 
     ctx.fillStyle = PLAYER_COLOR;
     ctx.fillRect(newX, newY, PLAYER_SIZE, PLAYER_SIZE);
-    if (player.username === me.username) {
-        me.x = newX;
-        me.y = newY;
+
+    const username = player.username;
+    if (!players[username]) {
+        players[username] = new Player(username);
     }
+    players[username].x = newX + PLAYER_SIZE / 2;
+    players[username].y = newY + PLAYER_SIZE / 2;
+    players[username].nameplate.updatePosition();
 }
 
 function drawOuterBorders() {

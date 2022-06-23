@@ -4,7 +4,8 @@ import net.edubovit.labyrinth.config.properties.ApplicationProperties;
 import net.edubovit.labyrinth.domain.Game;
 import net.edubovit.labyrinth.dto.CreateGameRequestDTO;
 import net.edubovit.labyrinth.dto.GameDTO;
-import net.edubovit.labyrinth.dto.GameChangedEvent;
+import net.edubovit.labyrinth.event.PlayerLeftEvent;
+import net.edubovit.labyrinth.event.TilesChangedEvent;
 import net.edubovit.labyrinth.exception.NotFoundException;
 import net.edubovit.labyrinth.repository.cached.GameCachedRepository;
 
@@ -34,7 +35,8 @@ public class GameService {
         log.info("creating new game for {}: {}", username, request);
         gameCachedRepository.getByUsername(username)
                 .ifPresent(prevGame -> {
-                    eventService.tilesChanged(prevGame.getId(), prevGame.leave(username));
+                    eventService.sendGameEvent(prevGame.getId(), prevGame.leave(username));
+                    eventService.sendGameEvent(prevGame.getId(), new PlayerLeftEvent(username));
                     gameCachedRepository.deleteGameIfAbandoned(prevGame);
                 });
         var game = new Game(request.width(), request.height(), request.seed());
@@ -54,10 +56,11 @@ public class GameService {
                         .orElseThrow(NotFoundException::new);
         gameCachedRepository.getByUsername(username)
                 .ifPresent(prevGame -> {
-                    eventService.tilesChanged(prevGame.getId(), prevGame.leave(username));
+                    eventService.sendGameEvent(prevGame.getId(), prevGame.leave(username));
+                    eventService.sendGameEvent(prevGame.getId(), new PlayerLeftEvent(username));
                     gameCachedRepository.deleteGameIfAbandoned(prevGame);
                 });
-        eventService.tilesChanged(game.getId(), game.join(username));
+        eventService.sendGameEvent(game.getId(), game.join(username));
         gameCachedRepository.join(username, game);
         var response = new GameDTO(game, username);
         log.info("{} successfully joined game: {}", username, response);
@@ -105,7 +108,7 @@ public class GameService {
             gameCachedRepository.persist(game);
         }
         log.info("movement result: game {}, {}", game.getId(), response);
-        eventService.tilesChanged(game.getId(), response);
+        eventService.sendGameEvent(game.getId(), response);
     }
 
     @RequiredArgsConstructor
@@ -115,7 +118,7 @@ public class GameService {
         LEFT(Game::moveLeft),
         RIGHT(Game::moveRight);
 
-        final BiFunction<Game, String, GameChangedEvent> action;
+        final BiFunction<Game, String, TilesChangedEvent> action;
     }
 
 }

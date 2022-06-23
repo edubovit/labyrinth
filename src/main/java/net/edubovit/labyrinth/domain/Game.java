@@ -1,7 +1,7 @@
 package net.edubovit.labyrinth.domain;
 
 import net.edubovit.labyrinth.dto.CellChangeDTO;
-import net.edubovit.labyrinth.dto.GameChangedEvent;
+import net.edubovit.labyrinth.event.TilesChangedEvent;
 import net.edubovit.labyrinth.dto.LabyrinthDTO;
 import net.edubovit.labyrinth.exception.Exceptions;
 
@@ -58,27 +58,28 @@ public class Game implements Serializable {
         return new LabyrinthDTO(labyrinth, players, visibilityMatrix);
     }
 
-    public GameChangedEvent join(String username) {
+    public TilesChangedEvent join(String username) {
         lastUsed = LocalDateTime.now();
         var player = new Player(username);
         player.setPosition(labyrinth.getCell(labyrinth.getWidth() - 1, labyrinth.getHeight() - 1));
         var seenTiles = seenTiles(player.getPosition());
         visibilityMatrix.setPlayerVision(player, seenTiles);
         players.add(player);
-        return new GameChangedEvent(username, 0, finish(username), buildCellChangesDTO(seenTiles));
+        return new TilesChangedEvent(username, 0, finish(username), buildCellChangesDTO(seenTiles));
     }
 
-    public GameChangedEvent leave(String username) {
+    public TilesChangedEvent leave(String username) {
         var playerOptional = playerByUsernameOptional(username);
         if (playerOptional.isPresent()) {
             lastUsed = LocalDateTime.now();
             var player = playerOptional.get();
             players.remove(player);
-            var changedTiles = buildCellChangesDTO(visibilityMatrix.getPlayerVision(player));
+            var seenTiles = List.copyOf(visibilityMatrix.getPlayerVision(player));
             visibilityMatrix.setPlayerVision(player, emptyList());
-            return new GameChangedEvent(username, player.getTurns(), false, changedTiles);
+            var changedTiles = buildCellChangesDTO(seenTiles);
+            return new TilesChangedEvent(username, player.getTurns(), false, changedTiles);
         } else {
-            return new GameChangedEvent(username, 0, false, emptyList());
+            return new TilesChangedEvent(username, 0, false, emptyList());
         }
     }
 
@@ -98,29 +99,29 @@ public class Game implements Serializable {
         return playerByUsername(username).getTurns();
     }
 
-    public GameChangedEvent moveUp(String username) {
+    public TilesChangedEvent moveUp(String username) {
         var player = playerByUsername(username);
         return move(player, player.getPosition().getUp());
     }
 
-    public GameChangedEvent moveDown(String username) {
+    public TilesChangedEvent moveDown(String username) {
         var player = playerByUsername(username);
         return move(player, player.getPosition().getDown());
     }
 
-    public GameChangedEvent moveLeft(String username) {
+    public TilesChangedEvent moveLeft(String username) {
         var player = playerByUsername(username);
         return move(player, player.getPosition().getLeft());
     }
 
-    public GameChangedEvent moveRight(String username) {
+    public TilesChangedEvent moveRight(String username) {
         var player = playerByUsername(username);
         return move(player, player.getPosition().getRight());
     }
 
-    private GameChangedEvent move(Player player, Direction<?> direction) {
+    private TilesChangedEvent move(Player player, Direction<?> direction) {
         if (direction.getWall().getState() == FINAL) {
-            return new GameChangedEvent(player.getUsername(), player.getTurns(), finish(player.getUsername()), emptyList());
+            return new TilesChangedEvent(player.getUsername(), player.getTurns(), finish(player.getUsername()), emptyList());
         }
         lastUsed = LocalDateTime.now();
         var prevSeenTiles = List.copyOf(visibilityMatrix.getPlayerVision(player));
@@ -133,7 +134,7 @@ public class Game implements Serializable {
                 .map(this::cellToCellChangeDTO)
                 .toList();
         player.setTurns(player.getTurns() + 1);
-        return new GameChangedEvent(player.getUsername(), player.getTurns(), isFinished(player), changedTiles);
+        return new TilesChangedEvent(player.getUsername(), player.getTurns(), isFinished(player), changedTiles);
     }
 
     private Collection<Cell> seenTiles(Cell position) {

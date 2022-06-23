@@ -1,6 +1,6 @@
 package net.edubovit.labyrinth.service;
 
-import net.edubovit.labyrinth.dto.GameChangedEvent;
+import net.edubovit.labyrinth.event.GameEvent;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -14,8 +14,8 @@ public class EventService {
 
     private final SimpMessagingTemplate sender;
 
-    public void tilesChanged(UUID gameId, GameChangedEvent event) {
-        sender.convertAndSend("/topic/game/" + gameId, event);
+    public void sendGameEvent(UUID gameId, GameEvent event) {
+        sender.convertAndSend("/topic/game/%s/%s".formatted(gameId, event.subtopic()), event);
     }
 
 }
