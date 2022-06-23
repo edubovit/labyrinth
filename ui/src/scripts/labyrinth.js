@@ -1,4 +1,5 @@
-StompJs = require('@stomp/stompjs');
+const {Player} = require("./player");
+const StompJs = require('@stomp/stompjs');
 
 const SCALE = 1// step 0.5
 
@@ -22,9 +23,8 @@ const ctx = canvas.getContext('2d');
 
 let currentPage = 'login';
 
-let username;
 let gameId;
-let playerCoordinates = {};
+let me;
 
 let stompClient;
 let csrf;
@@ -51,7 +51,7 @@ async function checkSession() {
         headers: csrfHeaders
     });
     if (response.ok) {
-        window.username = (await response.json()).username;
+        me = new Player((await response.json()).username);
         showPageGame();
     } else {
         showPageLogin();
@@ -143,7 +143,7 @@ function reflectChanges(event) {
         drawTileBorder(tile.i, tile.j, tile.newState);
     });
     drawOuterBorders();
-    if (event.owner === window.username) {
+    if (event.owner === me.username) {
         document.getElementsByClassName("moves__count")[0].innerHTML = event.turns;
         if (event.finish) {
             alert("Молодец какой");
@@ -208,9 +208,9 @@ function drawPlayer(player) {
 
     ctx.fillStyle = PLAYER_COLOR;
     ctx.fillRect(newX, newY, PLAYER_SIZE, PLAYER_SIZE);
-    if (player.username === window.username) {
-        playerCoordinates.x = newX;
-        playerCoordinates.y = newY;
+    if (player.username === me.username) {
+        me.x = newX;
+        me.y = newY;
     }
 }
 
@@ -267,8 +267,8 @@ function setMoveEvents(kbEnabled) {
     if (detectMobile()) {
         // click move
         canvas.onclick = async event => {
-            const offsetX = event.offsetX - playerCoordinates.x;
-            const offsetY = event.offsetY - playerCoordinates.y;
+            const offsetX = event.offsetX - me.x;
+            const offsetY = event.offsetY - me.y;
             if (Math.abs(offsetY) > Math.abs(offsetX)) {
                 if (offsetY < 0) {
                     doTheMove('up');
@@ -291,7 +291,7 @@ function setLevelButtonsEvents() {
     const levels = document.getElementsByClassName('level')
     for (let i = 0; i < levels.length; i++) {
         levels[i].onclick = async function (event) {
-            await createGame(event.target.dataset.value)
+            await createGame(event.target.dataset.value);
         }
     }
 }
@@ -320,7 +320,7 @@ function authenticate(path, errorMessage) {
             body: `{"username":"${username}","password":"${password}"}`,
         });
         if (response.ok) {
-            window.username = username;
+            me = new Player(username);
             await obtainCsrfToken();
             await loadGame();
             showPageGame();
