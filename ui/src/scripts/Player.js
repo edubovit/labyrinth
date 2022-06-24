@@ -1,6 +1,9 @@
-import {Nameplate} from "./nameplate";
+import {Nameplate} from "./Nameplate";
+import {PlayerColorPicker} from "./PlayerColorPicker";
 
 export class Player {
+
+    color = PlayerColorPicker.pickColor();
     x = 0;
     y = 0;
 
@@ -8,4 +11,5 @@ export class Player {
         this.username = username;
         this.nameplate = new Nameplate(this);
     }
+
 }

@@ -1,5 +1,6 @@
-const {Player} = require("./player");
+const {Player} = require("./Player");
 const StompJs = require('@stomp/stompjs');
+const {PlayerColorPicker} = require("./PlayerColorPicker");
 
 const SCALE = 1// step 0.5
 
@@ -15,7 +16,6 @@ const SEEN_COLOR = "#fff"
 const BORDER_COLOR = "#000"
 const ENTER_COLOR = "#f00"
 const EXIT_COLOR = "#0f0"
-const PLAYER_COLOR = "#ff7700"
 
 const API_HOST = process.env.API_HOST || 'http://localhost:8080';
 const canvas = document.getElementById('canvas');
@@ -113,13 +113,14 @@ function doTheMove(direction) {
 
 function renderGame(game) {
     gameId = game.id;
-    if (players) {
+    if (players && Object.keys(players).length > 0) {
         Object.entries(players)
             .map(e => e[1])
-            .forEach(player => player.nameplate.remove());
+            .forEach(player => player.nameplate.delete());
     }
     players = {};
     showNameplates = false;
+    PlayerColorPicker.reset();
     canvas.width = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map[0].length;
     canvas.height = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map.length;
     document.getElementsByClassName("moves__count")[0].innerHTML = game.turns;
@@ -138,7 +139,7 @@ function renderGame(game) {
             });
             stompClient.subscribe(`/topic/game/${gameId}/leave`, (message) => {
                 const payload = JSON.parse(message.body);
-                players[payload.username].nameplate.remove();
+                players[payload.username].nameplate.delete();
             });
         }
     });
@@ -215,24 +216,26 @@ function drawTileBorder(i, j, state) {
 }
 
 function drawPlayer(player) {
+    const username = player.username;
+    let savedPlayer = players[username];
+    if (!savedPlayer) {
+        players[username] = savedPlayer = new Player(username);
+    }
+
     const deltaPlus = Math.floor((BLOCK_SIZE - PLAYER_SIZE) / 2);
     const newX = OUTER_BORDER_SIZE + player.x * BLOCK_SIZE + deltaPlus;
     const newY = OUTER_BORDER_SIZE + player.y * BLOCK_SIZE + deltaPlus;
-
-    ctx.fillStyle = PLAYER_COLOR;
+    ctx.fillStyle = savedPlayer.color;
     ctx.fillRect(newX, newY, PLAYER_SIZE, PLAYER_SIZE);
-
-    const username = player.username;
-    if (!players[username]) {
-        players[username] = new Player(username);
-    }
-    players[username].x = newX + PLAYER_SIZE / 2;
-    players[username].y = newY + PLAYER_SIZE / 2;
+    savedPlayer.x = newX + PLAYER_SIZE / 2;
+    savedPlayer.y = newY + PLAYER_SIZE / 2;
     if (showNameplates) {
-        players[username].nameplate.updatePosition();
-    } else if (Object.entries(players).length > 1) {
+        savedPlayer.nameplate.updatePosition();
+    } else if (Object.keys(players).length > 1) {
         showNameplates = true;
-        Object.entries(players).map(e => e[1]).forEach(p => p.nameplate.updatePosition());
+        Object.entries(players)
+            .map(e => e[1])
+            .forEach(p => p.nameplate.updatePosition());
     }
 }
 

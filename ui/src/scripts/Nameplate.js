@@ -23,8 +23,11 @@ export class Nameplate {
         container.append(nameplate);
     }
 
-    remove = () => {
-        this.nameplate.remove();
+    delete = () => {
+        if (this.nameplate) {
+            this.nameplate.remove();
+            delete this.nameplate;
+        }
     }
 
 }
