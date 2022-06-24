@@ -1,2 +1,2 @@
 ALTER TABLE game
-ADD COLUMN last_used timestamptz;
+ADD COLUMN last_update timestamptz;

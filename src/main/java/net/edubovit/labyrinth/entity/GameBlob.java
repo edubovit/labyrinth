@@ -18,6 +18,6 @@ public class GameBlob {
 
     private byte[] gameBlob;
 
-    private LocalDateTime lastUsed;
+    private LocalDateTime lastUpdate;
 
 }

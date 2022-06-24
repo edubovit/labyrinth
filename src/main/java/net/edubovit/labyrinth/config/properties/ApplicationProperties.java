@@ -18,4 +18,6 @@ public class ApplicationProperties {
     @Positive
     private int gameFlushPeriod;
 
+    private boolean gameCompressionEnabled;
+
 }
