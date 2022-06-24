@@ -118,9 +118,12 @@ function renderGame(game) {
             .map(e => e[1])
             .forEach(player => player.nameplate.delete());
     }
-    players = {};
+    players = {
+        [me.username]: me
+    };
     showNameplates = false;
     PlayerColorPicker.reset();
+    players[me.username].color = PlayerColorPicker.pickColor();
     canvas.width = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map[0].length;
     canvas.height = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map.length;
     document.getElementsByClassName("moves__count")[0].innerHTML = game.turns;
