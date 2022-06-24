@@ -26,6 +26,7 @@ let currentPage = 'login';
 let gameId;
 let me;
 let players;
+let showNameplates;
 
 let stompClient;
 let csrf;
@@ -118,6 +119,7 @@ function renderGame(game) {
             .forEach(player => player.nameplate.remove());
     }
     players = {};
+    showNameplates = false;
     canvas.width = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map[0].length;
     canvas.height = OUTER_BORDER_SIZE * 2 + BLOCK_SIZE * game.map.length;
     document.getElementsByClassName("moves__count")[0].innerHTML = game.turns;
@@ -226,7 +228,12 @@ function drawPlayer(player) {
     }
     players[username].x = newX + PLAYER_SIZE / 2;
     players[username].y = newY + PLAYER_SIZE / 2;
-    players[username].nameplate.updatePosition();
+    if (showNameplates) {
+        players[username].nameplate.updatePosition();
+    } else if (Object.entries(players).length > 1) {
+        showNameplates = true;
+        Object.entries(players).map(e => e[1]).forEach(p => p.nameplate.updatePosition());
+    }
 }
 
 function drawOuterBorders() {
