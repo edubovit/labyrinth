@@ -20,4 +20,6 @@ public class ApplicationProperties {
 
     private boolean gameCompressionEnabled;
 
+    private boolean cheatsEnabled;
+
 }

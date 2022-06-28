@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,6 +38,8 @@ public class Game implements Serializable {
 
     @Getter
     private LocalDateTime lastUsed;
+
+    private Direction<?>[][] solution;
 
     public Game(int width, int height, long seed) {
         id = UUID.randomUUID();
@@ -119,6 +122,11 @@ public class Game implements Serializable {
         return move(player, player.getPosition().getRight());
     }
 
+    public TilesChangedEvent moveBySolution(String username) {
+        var player = playerByUsername(username);
+        return move(player, hint(player));
+    }
+
     private TilesChangedEvent move(Player player, Direction<?> direction) {
         if (direction.getWall().getState() == FINAL) {
             return new TilesChangedEvent(player.getUsername(), player.getTurns(), finish(player.getUsername()), emptyList());
@@ -194,6 +202,42 @@ public class Game implements Serializable {
         return players.stream()
                 .filter(p -> p.getPosition() == cell)
                 .toList();
+    }
+
+    private Direction<?> hint(Player player) {
+        if (solution == null) {
+            initializeSolution();
+        }
+        var position = player.getPosition();
+        return solution[position.getI()][position.getJ()];
+    }
+
+    private void initializeSolution() {
+        solution = new Direction[labyrinth.getHeight()][labyrinth.getWidth()];
+        var front = new ArrayList<Cell>(1);
+        var finish = labyrinth.getCell(0, 0);
+        front.add(finish);
+        var visited = new HashSet<>();
+        visited.add(finish);
+        while (!front.isEmpty()) {
+            var nextFront = new ArrayList<Cell>(5 * front.size() / 2);
+            for (var cell : front) {
+                final var cellFinal = cell;
+                Stream.of(cell.getUp(), cell.getDown(), cell.getLeft(), cell.getRight())
+                        .filter(direction -> direction.getWall().getState() != FINAL)
+                        .map(Direction::getCell)
+                        .filter(nextCell -> !visited.contains(nextCell))
+                        .forEach(nextCell -> Stream.of(nextCell.getUp(), nextCell.getDown(), nextCell.getLeft(), nextCell.getRight())
+                                .filter(prevDirection -> prevDirection.getCell() == cellFinal)
+                                .findAny()
+                                .ifPresent(prevDirection -> {
+                                    solution[nextCell.getI()][nextCell.getJ()] = prevDirection;
+                                    visited.add(nextCell);
+                                    nextFront.add(nextCell);
+                                }));
+            }
+            front = nextFront;
+        }
     }
 
 }

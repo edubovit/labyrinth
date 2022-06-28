@@ -79,27 +79,12 @@ public class GameService {
     }
 
     @Transactional
-    public void moveUp() {
-        move(MovementDirection.UP);
+    public void move(MovementDirection direction) {
+        move(sessionUtilService.getUsername(), direction);
     }
 
     @Transactional
-    public void moveDown() {
-        move(MovementDirection.DOWN);
-    }
-
-    @Transactional
-    public void moveLeft() {
-        move(MovementDirection.LEFT);
-    }
-
-    @Transactional
-    public void moveRight() {
-        move(MovementDirection.RIGHT);
-    }
-
-    private void move(MovementDirection direction) {
-        String username = sessionUtilService.getUsername();
+    public TilesChangedEvent move(String username, MovementDirection direction) {
         log.info("moving {} {}", username, direction.toString().toLowerCase());
         var game = gameCachedRepository.getByUsername(username)
                 .orElseThrow(NotFoundException::new);
@@ -109,14 +94,16 @@ public class GameService {
         }
         log.info("movement result: game {}, {}", game.getId(), response);
         eventService.sendGameEvent(game.getId(), response);
+        return response;
     }
 
     @RequiredArgsConstructor
-    private enum MovementDirection {
+    public enum MovementDirection {
         UP(Game::moveUp),
         DOWN(Game::moveDown),
         LEFT(Game::moveLeft),
-        RIGHT(Game::moveRight);
+        RIGHT(Game::moveRight),
+        SOLUTION(Game::moveBySolution);
 
         final BiFunction<Game, String, TilesChangedEvent> action;
     }

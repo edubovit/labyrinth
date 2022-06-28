@@ -22,6 +22,7 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
 let currentPage = 'login';
+let command;
 
 let gameId;
 let me;
@@ -265,6 +266,20 @@ function setEvents() {
 function setMoveEvents(kbEnabled) {
     // kb move
     window.onkeydown = kbEnabled ? event => {
+        if (command === undefined) {
+            if (event.code === 'Slash') {
+                command = '';
+            }
+        } else if (event.code === 'Space') {
+            fetch(`${API_HOST}/command/${command}`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: csrfHeaders
+            }).catch(() => {});
+            command = undefined;
+        } else {
+            command += event.key;
+        }
         if (currentPage !== 'game') {
             return;
         }

@@ -6,7 +6,8 @@ labyrinth:
     - http://192.168.1.10:8081
     - http://192.168.1.11:8081
   game-flush-period: ${GAME_FLUSH_PERIOD:100}
-  game-compression-enabled: false
+  game-compression-enabled: ${GAME_COMPRESSION_ENABLED:false}
+  cheats-enabled: ${CHEATS_ENABLED:true}
 
 server:
   compression:
